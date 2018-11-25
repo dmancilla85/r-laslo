@@ -1,11 +1,10 @@
 rem Para configurar el git
 
-git config --global user.email "mail@ewenharrison.com"
-git config --global user.name "ewenharrison"
+git config --global user.email "david.a.m@live.com"
+git config --global user.name "dmancilla85"
 
-git remote add origin https://github.com/ewenharrison/test.git
-git config remote.origin.url git@github.com:ewenharrison/test.git
-git pull -u origin master
-git push -u origin master
+git remote add origin https://github.com/dmancilla85/r-laslo.git
+git config remote.origin.url git@github.com:dmancilla85/r-laslo.git
+git push origin master
 
 pause
