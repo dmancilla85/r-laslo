@@ -1,4 +1,36 @@
 
+setwd(paste(getwd(), "/data", sep=""))
+
+temp <- list.files(pattern="*.csv")
+
+for (i in 1:length(temp)){
+  fileName <- str_replace(temp[i], ".csv", "")
+  print(fileName)
+  
+  if(grepl("_rnd", fileName)){
+    # IS RANDOM
+    if(i == 1){
+      df <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+      df$Serie = "Random"
+    } else {
+      aux <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+      aux$Serie = "Random"
+      df <- rbind(df, aux)
+    }
+    
+  } else {
+    if(i == 1){
+      df <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+      df$Serie = "Original"
+    } else {
+      aux <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+      aux$Serie = "Original"
+      df <- rbind(df, aux)
+    }
+  }
+}
+
+
 # ****************************************************************
 file <- "smaug_bound_fruitfly"
 fly_bound <- read.csv(paste(file, ".csv", sep=""), header=TRUE, sep=";", dec=",", 
