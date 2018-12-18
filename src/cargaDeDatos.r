@@ -1,88 +1,48 @@
 
-setwd(paste(getwd(), "/data", sep=""))
+setwd(paste(getwd(), "/data/mitocondriales", sep=""))
 
-temp <- list.files(pattern="*.csv")
-
-for (i in 1:length(temp)){
-  fileName <- str_replace(temp[i], ".csv", "")
-  print(fileName)
+loadFiles <- function(path, pattern = "*.csv"){
+  temp <- list.files(path = path, pattern = pattern)
   
-  if(grepl("_rnd", fileName)){
-    # IS RANDOM
-    if(i == 1){
-      df <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
-      df$Serie = "Random"
-    } else {
-      aux <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
-      aux$Serie = "Random"
-      df <- rbind(df, aux)
-    }
+  for (i in 1:length(temp)){
+    fileName <- str_replace(temp[i], ".csv", "")
+    print(fileName)
     
-  } else {
-    if(i == 1){
-      df <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
-      df$Serie = "Original"
+    if(grepl("_rnd", fileName)){
+      # IS RANDOM
+      if(i == 1){
+        df <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+        df$Serie = "Random"
+      } else {
+        aux <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+        aux$Serie = "Random"
+        df <- rbind(df, aux)
+      }
+      
     } else {
-      aux <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
-      aux$Serie = "Original"
-      df <- rbind(df, aux)
+      if(i == 1){
+        df <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+        df$Serie = "Original"
+      } else {
+        aux <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+        aux$Serie = "Original"
+        df <- rbind(df, aux)
+      }
     }
   }
+  
+  remove(aux)
+  return(df)
 }
 
 
 # ****************************************************************
-file <- "smaug_bound_fruitfly"
-fly_bound <- read.csv(paste(file, ".csv", sep=""), header=TRUE, sep=";", dec=",", 
-                stringsAsFactors = FALSE)
-fly_bound$SerieID <- 1
-fly_bound <- fly_bound %>% distinct(Column3, Loop, TerminalPair, .keep_all = TRUE)
-fly_bound$Serie = "Unidos a Smaug"
 
-print("Cargando randoms...")
-for(i in 1:20){
-  df <- read.csv(paste(file,"_rnd", i, ".csv", sep=""), header=TRUE, sep=";", 
-                 dec=",", stringsAsFactors = FALSE)
-  df$Serie <- "Secuencias random" #paste("Control", i)
-  df$SerieID <- 2
-  fly_bound <- rbind(fly_bound, df)
-}
+#fly_bound <- fly_bound %>% distinct(Column3, Loop, TerminalPair, .keep_all = TRUE)
 
 
 # ****************************************************************
-file <- "repressed_non_bound"
-fly_repressed <- read.csv(paste(file, ".csv", sep=""), header=TRUE, sep=";", dec=",", 
-                      stringsAsFactors = TRUE)
-fly_repressed$SerieID <- 1
-fly_repressed$Serie = "Secuencia cDNA"
 
-print("Cargando randoms...")
-for(i in 1:14){
-  df <- read.csv(paste(file,"_rnd", i, ".csv", sep=""), header=TRUE, sep=";", 
-                 dec=",", stringsAsFactors = TRUE)
-  df$Serie <- "Secuencia permutada" #paste("Control", i)
-  df$SerieID <- 2
-  fly_repressed <- rbind(fly_repressed, df)
-}
-
-
-# ****************************************************************
-file <- "mouse_nizou"
-mouse <- read.csv(paste(file, ".csv", sep=""), header=TRUE, sep=";", dec=",", 
-                          stringsAsFactors = TRUE)
-mouse$SerieID <- 1
-mouse$Serie = "Secuencia cDNA"
-
-print("Cargando randoms...")
-for(i in 1:150){
-  df <- read.csv(paste(file,"_rnd", i, ".csv", sep=""), header=TRUE, sep=";", 
-                 dec=",", stringsAsFactors = TRUE)
-  df$Serie <- "Secuencia permutada" #paste("Control", i)
-  df$SerieID <- 2
-  mouse <- rbind(mouse, df)
-}
-
-# ****************************************************************
 file <- "yeast_she"
 yeast <- read.csv(paste(file, ".csv", sep=""), header=TRUE, sep=";", dec=",", 
                   stringsAsFactors = FALSE)
@@ -177,7 +137,7 @@ fly.bases <- fly.bases[fly.bases$Base!=" " & !is.na(fly.bases$Base),]
 # Plot generales
 # PLOT 1
 ggplot(fly.bases, aes(x=Posicion, fill= Base)) +
-  geom_bar(position="fill", na.rm = TRUE) +
+  geom_bar(position="fill", na.rm = TRUE, color="black") +
   facet_grid(Serie  ~ Specie , scales="free", space="free") + 
   xlab("Posición en el bucle") +
   ylab("Frecuencia") +

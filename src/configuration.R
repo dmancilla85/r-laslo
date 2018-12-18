@@ -57,8 +57,17 @@ if (!require(devtools)){
   install.packages('devtools')
   library(devtools)
 }
-install_github("larmarange/JLutils")
-library(JLutils)
+
+if (!require(JLutils)){
+  install_github("larmarange/JLutils")
+  library(JLutils)
+}
+
+if (!require(reshape2)){
+  install.packages('reshape2')
+  library(reshape2)
+}
+
 #cluster
 #vcd
 
@@ -66,24 +75,37 @@ library(JLutils)
 Funciones
 ###############################################################################
 
-loadAllData <- function(path, name, ext=".csv", nRand, serie1, serie2){
+# 1. Carga de archivos en dos tandas (Original vs Random)
+loadFiles <- function(path, pattern = "*.csv"){
+  temp <- list.files(path = path, pattern = pattern)
   
-  print("Cargando archivo... ")
-  myData <- read.csv(paste(path, file, ext, sep=""), header=TRUE, sep=";", dec=",", 
-                        stringsAsFactors = FALSE)
-  myData$SerieID <- 1
-  myData <- myData %>% distinct(Column3, Loop, TerminalPair, .keep_all = TRUE)
-  myData$Serie = serie1
-  
-  print("Cargando randoms...")
-  
-  for(i in 1:nRand){
-    df <- read.csv(paste(path, file,"_rnd", i, ext, sep=""), header=TRUE, sep=";", 
-                   dec=",", stringsAsFactors = FALSE)
-    df$Serie <- serie2 
-    df$SerieID <- 2
-    myData <- rbind(myData, df)
+  for (i in 1:length(temp)){
+    fileName <- str_replace(temp[i], ".csv", "")
+    print(fileName)
+    
+    if(grepl("_rnd", fileName)){
+      # Is Random
+      if(i == 1){
+        df <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+        df$Serie = 2
+      } else {
+        aux <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+        aux$Serie = 2
+        df <- rbind(df, aux)
+      }
+      
+    } else {
+      if(i == 1){
+        df <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+        df$Serie = 1
+      } else {
+        aux <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+        aux$Serie = 1
+        df <- rbind(df, aux)
+      }
+    }
   }
   
-  return(myData)
+  remove(aux)
+  return(df)
 }
