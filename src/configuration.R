@@ -72,7 +72,7 @@ if (!require(reshape2)){
 #vcd
 
 ###############################################################################
-Funciones
+# Funciones
 ###############################################################################
 
 # 1. Carga de archivos en dos tandas (Original vs Random)
@@ -80,31 +80,48 @@ loadFiles <- function(path, pattern = "*.csv"){
   temp <- list.files(path = path, pattern = pattern)
   
   for (i in 1:length(temp)){
-    fileName <- str_replace(temp[i], ".csv", "")
+    fileName <- stringr::str_replace(temp[i], ".csv", "")
     print(fileName)
     
     if(grepl("_rnd", fileName)){
       # Is Random
       if(i == 1){
-        df <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
-        df$Serie = 2
+        df <- read.csv(paste(path,temp[i],sep=""), sep =";", 
+                       dec =",", stringsAsFactors = FALSE)
+        df$Serie = 0
       } else {
-        aux <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
-        aux$Serie = 2
+        aux <- read.csv(paste(path,temp[i],sep=""), sep =";", 
+                        dec =",", stringsAsFactors = FALSE)
+        aux$Serie = 0
         df <- rbind(df, aux)
       }
       
     } else {
       if(i == 1){
-        df <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+        df <- read.csv(paste(path,temp[i],sep=""), sep =";", 
+                       dec =",", stringsAsFactors = FALSE)
         df$Serie = 1
       } else {
-        aux <- read.csv(temp[i], sep =";", dec =",", stringsAsFactors = FALSE)
+        aux <- read.csv(paste(path,temp[i],sep=""), sep =";", 
+                        dec =",", stringsAsFactors = FALSE)
         aux$Serie = 1
         df <- rbind(df, aux)
       }
     }
   }
+  
+  df <- df[!is.na(df$C_PercentSequence), ]
+  df$LoopPattern <- factor(df$LoopPattern)
+  df$N.1 <- factor(df$N.1)
+  df$N.2 <- factor(df$N.2)
+  df$N2 <- factor(df$N2)
+  df$N5 <- factor(df$N5)
+  df$N6 <- factor(df$N6)
+  df$N7 <- factor(df$N7)
+  df$N8 <- factor(df$N8)
+  df$TerminalPair <- factor(df$TerminalPair)
+  #df$Serie <- factor(df$Serie)
+  df$Bulges <- factor(df$Bulges)
   
   remove(aux)
   return(df)
