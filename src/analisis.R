@@ -3,30 +3,9 @@ source("./src/configuration.R")
 
 df <- loadFiles(path="./data/fruitfly_bound/", pattern = "*.csv")
 
-df$Column4 <- NULL
-df$Column6 <- NULL
-df$LoopID <- NULL
-df$Sense <- NULL
-df$StemLoopSequence <- NULL
-df$PredictedStructure <- NULL
-df$Additional3Seq <- NULL
-df$Additional5Seq <- NULL
-df$ViennaBracketStr <- NULL
-df$EndsAt <- NULL
-df$SequenceLength <- NULL
-df$AdditionalSeqMatches <- NULL
-df$AdditionalSeqPositions <- NULL
-df$StartsAt <- NULL
-names(df)[names(df) == 'Column1'] <- 'GenID'
-names(df)[names(df) == 'Column2'] <- 'TranscriptoID'
-names(df)[names(df) == 'Column3'] <- 'GenSymbol'
-names(df)[names(df) == 'Column5'] <- 'Chromosome'
-glimpse(df)
-summary(df)
-
 #1 Eliminar variables innecesarias
 # a. correlaciones
-correlaciones(df)
+getCors(df)
 
 ###############################################################################
 # 2. MFE Energy

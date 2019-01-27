@@ -125,15 +125,39 @@ loadFiles <- function(path, pattern = "*.csv"){
   df$TerminalPair <- factor(df$TerminalPair)
   df$Additional5Seq <- factor(df$Additional5Seq)
   df$Additional3Seq <- factor(df$Additional3Seq)
-  #df$Serie <- factor(df$Serie)
-  #df$Bulges <- factor(df$Bulges)
-  #df$Location <- factor(df$Location)
   
+  glimpse(df)
   remove(aux)
   return(df)
 }
 
-# 2. Goodman and Kruskal Tau Measure
+# 2. Formato de los datos para Ensembl
+###############################################################################
+formatEnsembl <- function(df){
+  df$Column4 <- NULL
+  df$Column6 <- NULL
+  df$LoopID <- NULL
+  df$Sense <- NULL
+  df$StemLoopSequence <- NULL
+  df$PredictedStructure <- NULL
+  df$Additional3Seq <- NULL
+  df$Additional5Seq <- NULL
+  df$ViennaBracketStr <- NULL
+  df$EndsAt <- NULL
+  df$StartsAt <- NULL
+  df$AdditionalSeqMatches <- NULL
+  df$AdditionalSeqPositions <- NULL
+  df$StartsAt <- NULL
+  names(df)[names(df) == 'Column1'] <- 'GenID'
+  names(df)[names(df) == 'Column2'] <- 'TranscriptoID'
+  names(df)[names(df) == 'Column3'] <- 'GenSymbol'
+  names(df)[names(df) == 'Column5'] <- 'Chromosome'
+  glimpse(df)
+  
+  return(df)
+}
+
+# 3. Goodman and Kruskal Tau Measure
 ###############################################################################
 # (https://www.r-bloggers.com/measuring-associations-between-non-numeric-variables/)
 # La tau de Goodman-Kruskal mide la asociación para las tabulaciones cruzadas de 
@@ -198,7 +222,8 @@ GKtau <- function(x,y, debug=FALSE){
   tau
 }
 
-# 3. GK Tau Correlation table
+# 4. GK Tau Correlation table
+###############################################################################
 cor.GK.tau <- function(df){
   x <- matrix(nrow = ncol(df), ncol=ncol(df))
   
@@ -215,7 +240,7 @@ cor.GK.tau <- function(df){
   return(x)
 }
 
-correlaciones <- function(df) {
+getCors <- function(df) {
   
   corTauDF <- cor.GK.tau(df[df$Serie==1, 4:28])
   cor <- cor(dplyr::select_if(df[, 4:28], is.numeric), method = "pearson")
@@ -248,4 +273,28 @@ correlaciones <- function(df) {
   print(pl1)
   print(pl2)
   
+}
+
+# 5. Analisis de la distribucion de todas las bases
+###############################################################################
+plotBaseDistribution <- function(df){
+all.bases <- df %>% dplyr::select(Serie, "N(-1)"=N.1, "N(-2)"=N.2, 
+                                     "N2"=N2, "N5"=N5, "N6"=N6,"N7"=N7,"N8"=N8) %>%
+  melt(id=c("Serie")) %>% 
+  dplyr::select(Serie, "Posicion"=variable, Base=value)
+
+all.bases <- all.bases[all.bases$Base!=" " & !is.na(all.bases$Base),] 
+
+# PLOT 1
+pl1 <- ggplot(all.bases, aes(x=Posicion, fill= Base)) +
+  geom_bar(position="fill", na.rm = TRUE, alpha=0.9, color="black") +
+  facet_grid( . ~ Serie , scales="free", space="free") + 
+  xlab("Base variable N") + geom_text(stat = "fill_labels", 
+                                      size = 3, fontface=2) +
+  ylab("Proporción") + coord_flip() +
+  ggtitle("Bases variables de la secuencia consenso SRE",
+          subtitle="Loops que aparecen en más del 5% de los transcriptos") + 
+  scale_fill_brewer()
+
+  return(pl1)
 }
