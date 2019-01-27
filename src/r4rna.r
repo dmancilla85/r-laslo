@@ -36,25 +36,23 @@ setwd(paste(getwd(), "/data", sep=""))
 laslo <- loadFiles(path="./mouse/", pattern = "*.csv")
 mito <- loadFiles(path="./mitocondriales/", pattern = "*.csv")
 
-laslo_model <- glm(Serie  ~ RnaFoldMFE + LoopPattern + N.1 + N2 + N.2 + N5+ N6
-                      + Bulges + InternalLoops + CG_PercentPairs 
-                   + TerminalPair, 
-                      data = laslo, family = "binomial")
+train <- sample(nrow(laslo), nrow(laslo)*0.75)
 
 # Specify a null model with no predictors
-null_model <- glm(Serie ~ 1, data = laslo, family = "binomial")
-full_model <- glm(Serie  ~ RnaFoldMFE + LoopPattern + N.1 + N2 + N.2 + N5+ N6
-                  + Bulges + InternalLoops + CG_PercentPairs 
-                  + TerminalPair, data = laslo, family = "binomial")
+null_model <- glm(Serie ~ 1, data = laslo[train,], family = "binomial")
+full_model <- glm(Serie  ~ RnaFoldMFE + LoopPattern + N.1 + N2 + N.2 + N5 + N6 + N7
+                  + Bulges + InternalLoops + CG_PercentPairs + N8
+                  + TerminalPair + WooblePairs + GU_PercentPairs, 
+                  data = laslo[train,], family = "binomial")
 # Use a forward stepwise algorithm to build a parsimonious model
 step_model <- step(null_model, scope = list(lower = null_model, upper = full_model), 
                    direction = "forward")
 
-mean(laslo$Serie)
+mean(laslo[train, ]$Serie)
 laslo$Serie_prob <- predict(step_model, laslo, type="response")
-laslo$Serie_pred <- ifelse(laslo$Serie_prob > 0.006722689, 1, 0)
+laslo$Serie_pred <- ifelse(laslo$Serie_prob > 0.006962785, 1, 0)
 
-table(laslo$Serie, laslo$Serie_pred)
+table(laslo[-train, ]$Serie, laslo[-train, ]$Serie_pred)
 ROC <- roc(laslo$Serie, laslo$Serie_prob)
 # Plot the ROC curve
 plot(ROC, col = "blue")
@@ -117,3 +115,20 @@ table(loans_test$outcome, loans_test$pred)
 
 # Compute the accuracy on the test dataset
 mean(loans$outcome == loans_test$pred)
+
+##################################################
+# Load the randomForest package
+if(!require(randomForest)){
+  install.packages("randomForest")
+  library(randomForest)
+}
+
+# Build a random forest model
+loan_model <- randomForest(Serie  ~ RnaFoldMFE + LoopPattern + N.1 + N2 + N.2 + N5 + N6 + N7
+                           + Bulges + InternalLoops + CG_PercentPairs + N8
+                           + TerminalPair + WooblePairs + GU_PercentPairs, 
+                           data = laslo[train,])
+
+# Compute the accuracy of the random forest
+loans_test$pred <- predict(loan_model, loans_test, type="class")
+mean(loans_test$pred == loans_test$outcome)

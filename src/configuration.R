@@ -1,4 +1,4 @@
-print("Instalador de bibliotecas")
+print("Cargando paquetes...")
 
 if (!require(psych)){
   install.packages('psych')
@@ -53,10 +53,10 @@ if (!require(beeswarm)){
   library(beeswarm)
 }
 
-if (!require(devtools)){
-  install.packages('devtools')
-  library(devtools)
-}
+#if (!require(devtools)){
+#  install.packages('devtools')
+#  library(devtools)
+#}
 
 if (!require(JLutils)){
   install_github("larmarange/JLutils")
@@ -74,8 +74,10 @@ if (!require(reshape2)){
 ###############################################################################
 # Funciones
 ###############################################################################
+print("Cargando funciones...")
 
 # 1. Carga de archivos en dos tandas (Original vs Random)
+###############################################################################
 loadFiles <- function(path, pattern = "*.csv"){
   temp <- list.files(path = path, pattern = pattern)
   
@@ -111,6 +113,7 @@ loadFiles <- function(path, pattern = "*.csv"){
   }
   
   df <- df[!is.na(df$C_PercentSequence), ]
+  df <- df[!is.na(df$CG_PercentPairs), ]
   df$LoopPattern <- factor(df$LoopPattern)
   df$N.1 <- factor(df$N.1)
   df$N.2 <- factor(df$N.2)
@@ -120,9 +123,129 @@ loadFiles <- function(path, pattern = "*.csv"){
   df$N7 <- factor(df$N7)
   df$N8 <- factor(df$N8)
   df$TerminalPair <- factor(df$TerminalPair)
+  df$Additional5Seq <- factor(df$Additional5Seq)
+  df$Additional3Seq <- factor(df$Additional3Seq)
   #df$Serie <- factor(df$Serie)
-  df$Bulges <- factor(df$Bulges)
+  #df$Bulges <- factor(df$Bulges)
+  #df$Location <- factor(df$Location)
   
   remove(aux)
   return(df)
+}
+
+# 2. Goodman and Kruskal Tau Measure
+###############################################################################
+# (https://www.r-bloggers.com/measuring-associations-between-non-numeric-variables/)
+# La tau de Goodman-Kruskal mide la asociación para las tabulaciones cruzadas de 
+# las variables de niveles nominales.
+# 
+# La tau de Goodman-Kruskal se basa en la asignación aleatoria de las categorías. 
+# Mide la mejora porcentual en la capacidad de predicción de la variable 
+# dependiente (variable de columna o fila) dado el valor de otras variables 
+# (variables de fila o columna). La tau de Goodman-Kruskal es igual a la lambda de 
+# Goodman-Kruskal salvo que los cálculos del estadístico tau se basan en las 
+# probabilidades de asignación especificadas por las proporciones marginales o 
+# condicionales.
+# 
+# Las probabilidades de clasificación incorrecta se basan en la asignación 
+# aleatoria de las categorías con probabilidades especificadas por la proporción 
+# marginal o condicional.
+# La característica mas importante, y que otorga una asimetría al comparar X-Y con
+# Y-X, es que cuantifica la medida en que la variable X es útil para predecir Y.
+GKtau <- function(x,y, debug=FALSE){
+  
+  #  First, compute the IxJ contingency table between x and y
+  Nij = table(x,y,useNA="ifany")
+  
+  if(debug){
+    print("IxJ contingency table:")
+    print(Nij)
+  }
+  
+  #  Next, convert this table into a joint probability estimate
+  PIij = Nij/sum(Nij)
+  
+  if(debug){
+    print("IxJ joint probability estimate:")
+    print(PIij)
+  }
+  
+  #  Compute the marginal probability estimates
+  PIiPlus = apply(PIij,MARGIN=1,sum)
+  PIPlusj = apply(PIij,MARGIN=2,sum)
+  
+  if(debug){
+    print("Marginal probability estimates:")
+    print(paste("PIiPlus: ", PIiPlus))
+    print(paste("PIPlusj: ",PIPlusj))
+  }
+  
+  #  Compute the marginal variation of y
+  Vy = 1 - sum(PIPlusj^2)
+  
+  #  Compute the expected conditional variation of y given x
+  InnerSum <- apply(PIij^2,MARGIN=1,sum)
+  VyBarx <- 1 - sum(InnerSum/PIiPlus)
+  
+  if(debug){
+    print("Compute the expected conditional variation of y given x")
+    print(paste("InnerSum:", InnerSum))
+    print(paste("VyBarx:",VyBarx))
+  }
+  
+  #  Compute and return Goodman and Kruskal's tau measure
+  tau <- (Vy - VyBarx)/Vy
+  tau
+}
+
+# 3. GK Tau Correlation table
+cor.GK.tau <- function(df){
+  x <- matrix(nrow = ncol(df), ncol=ncol(df))
+  
+  rownames(x) <- colnames(df)
+  colnames(x) <- colnames(df)
+  
+  for(j in 1:ncol(df)){
+    for(i in 1:ncol(df)){
+      x[i,j] <- GKtau(df[, i], df[, j])
+    }
+  }
+  
+  x <- round(x, 2)
+  return(x)
+}
+
+correlaciones <- function(df) {
+  
+  corTauDF <- cor.GK.tau(df[df$Serie==1, 4:28])
+  cor <- cor(dplyr::select_if(df[, 4:28], is.numeric), method = "pearson")
+  
+  pl1 <- ggcorrplot(cor, 
+             lab = TRUE, 
+             lab_size = 3, 
+             method="square", 
+             tl.cex = 10,
+             show.diag = FALSE,
+             show.legend = FALSE,
+             outline.col="white",
+             colors = c("tomato2", "white", "springgreen3"), 
+             ggtheme = theme_bw()) + 
+    ggtitle("Correlación de Pearson", 
+            subtitle="Lista de genes unidos a Smaug de Chen")
+  
+  pl2 <- ggcorrplot(corTauDF, 
+             lab = TRUE, 
+             lab_size = 3, 
+             method="circle", 
+             tl.cex = 8,
+             show.diag = FALSE,
+             show.legend = FALSE,
+             outline.col="white",
+             colors = c("tomato2", "white", "springgreen3"), 
+             ggtheme = theme_bw()) + 
+    ggtitle("Estadístico Tau de Goodman - Kruskal", 
+            subtitle="Lista de genes unidos a Smaug de Chen")
+  print(pl1)
+  print(pl2)
+  
 }
