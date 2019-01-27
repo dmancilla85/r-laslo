@@ -1,5 +1,5 @@
 ---
-title: "ReporteLASLO"
+title: "Análisis de los datos generados por LASLO"
 author: "David A. Mancilla"
 date: "26 de enero de 2019"
 output: html_document
