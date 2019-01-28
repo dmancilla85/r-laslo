@@ -1,12 +1,4 @@
 
-source("./src/configuration.R")
-
-df <- loadFiles(path="./data/fruitfly_bound/", pattern = "*.csv")
-
-#1 Eliminar variables innecesarias
-# a. correlaciones
-getCors(df)
-
 ###############################################################################
 # 2. MFE Energy
 

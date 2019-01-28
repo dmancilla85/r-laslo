@@ -68,6 +68,11 @@ if (!require(reshape2)){
   library(reshape2)
 }
 
+if (!require(ggpubr)){
+  install.packages('ggpubr')
+  library(ggpubr)
+}
+
 #cluster
 #vcd
 
