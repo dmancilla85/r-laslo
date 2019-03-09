@@ -1,3 +1,94 @@
+# 1. PREVIO A TODO. Agregar en la clase e configuracion
+# una funciòn que cargue los listados originales (./listas) para poder comparar 
+
+# non_bound <- read.csv("./data/non_bound_fly/non_bound_smaug_8.csv",
+#                        sep =";", 
+#                        dec =",", stringsAsFactors = TRUE)
+
+non_bound <- read.csv("./data/non_bound_fly/smaug_bound_fruitfly_8.csv",
+                        sep =";", 
+                        dec =",", stringsAsFactors = TRUE)
+
+non_bound$Unido <- "Si"#"No" 
+non_bound$GenId <- non_bound$Column4
+non_bound$TranscriptoId <- non_bound$Column1
+non_bound$GenSymbol <- non_bound$Column2
+
+glimpse(non_bound)
+
+# 2. Agregar columnas...
+bnd1 <- non_bound %>% select(	Chromosome, 	LoopPattern, 
+								TerminalPair,	N.2, N.1, N2,
+								N5, N6, N7, N8, 
+								Pairments, WooblePairs,
+								Bulges, InternalLoops, 
+								AU_PercentPairs, PurinePercentStem,
+								RnaFoldMFE, RelativePosition, 
+								Additional5Seq, Additional3Seq,
+								CG_PercentPairs, PurinePercentStem,
+								Unido)
+
+df <- rbind(bnd, bnd1)
+df$Unido <- factor(df$Unido)
+
+install.packages("e1071")
+library(e1071)
+nBMod <- naiveBayes(Unido  ~  ., data = df, laplace = 0.01)
+
+#Getting started with Naive Bayes in mlr
+#Install the package
+install.packages("mlr")
+#Loading the library
+library(mlr)
+
+NB_pred <- predict(nBMod, df)
+  
+tb <- table(NB_pred, df$Unido)
+sum(diag(tb))/sum(tb)
+
+test <- read.csv("./data/non_bound_fly/Mig6_UTR_8.csv",
+                 sep =";", 
+                 dec =",", stringsAsFactors = TRUE)
+test$Unido <- NA
+test <- test %>% select(SequenceID, LoopPattern, TerminalPair,N.2, N.1, N2,
+                             N5, N6, N7, N8, Pairments, WooblePairs,
+                             Bulges, InternalLoops, AU_PercentPairs, PurinePercentStem,
+                             RnaFoldMFE, RelativePosition, Unido)
+
+
+test$Unido <- predict(nBMod, test)
+test
+
+mouse <- read.csv("./data/non_bound_fly/mouse_nizou_08_n6_nlp_t25.csv",
+                  sep =";", 
+                  dec =",", stringsAsFactors = TRUE)
+mouse$Unido <- NA
+mouse <- mouse %>% select(Column5, LoopPattern, TerminalPair,N.2, N.1, N2,
+                        N5, N6, N7, N8, Pairments, WooblePairs,
+                        Bulges, InternalLoops, AU_PercentPairs, PurinePercentStem,
+                        RnaFoldMFE, RelativePosition, Unido)
+
+mouse$Unido <- predict(nBMod, mouse)
+head(select(mouse, Column5, LoopPattern, N.1, N2, RnaFoldMFE, Unido), 20)
+
+#Create a classification task for learning on Titanic Dataset and specify the target feature
+task = makeClassifTask(data = df, target = "Unido")
+
+#Initialize the Naive Bayes classifier
+selected_model = makeLearner("classif.naiveBayes")
+
+#Train the model
+NB_mlr = train(selected_model, task)
+
+#Read the model learned  
+NB_mlr$learner.model
+
+#Predict on the dataset without passing the target feature
+predictions_mlr = as.data.frame(predict(NB_mlr, newdata = Titanic_dataset[,1:3]))
+
+##Confusion
+
+
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 # BiocManager::install("R4RNA", version = "3.8")

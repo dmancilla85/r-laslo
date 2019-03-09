@@ -131,7 +131,7 @@ loadFiles <- function(path, pattern = "*.csv"){
   df$Additional5Seq <- factor(df$Additional5Seq)
   df$Additional3Seq <- factor(df$Additional3Seq)
   
-  glimpse(df)
+  #glimpse(df)
   remove(aux)
   return(df)
 }
@@ -157,7 +157,19 @@ formatEnsembl <- function(df){
   names(df)[names(df) == 'Column2'] <- 'TranscriptoID'
   names(df)[names(df) == 'Column3'] <- 'GenSymbol'
   names(df)[names(df) == 'Column5'] <- 'Chromosome'
-  glimpse(df)
+  df$Chromosome <- factor(df$Chromosome)
+  df$Serie <- factor(df$Serie)
+  df$U_PercentSequence <- cut(df$U_PercentSequence, seq(0,1,.25))
+  df$RelativePosition <- cut(df$RelativePosition, seq(0,1,.20))
+  df$A_PercentSequence <- cut(df$A_PercentSequence, seq(0,1,.25))
+  df$C_PercentSequence <- cut(df$C_PercentSequence, seq(0,1,.25))
+  df$G_PercentSequence <- cut(df$G_PercentSequence, seq(0,1,.25))
+  df$AU_PercentPairs <- cut(df$AU_PercentPairs, seq(0,1,.25))
+  df$GU_PercentPairs <- cut(df$GU_PercentPairs, seq(0,1,.25))
+  df$CG_PercentPairs <- cut(df$CG_PercentPairs, seq(0,1,.25))
+  df$PurinePercentStem <- cut(df$PurinePercentStem, seq(0,1,.25))
+  
+  #glimpse(df)
   
   return(df)
 }
@@ -245,9 +257,8 @@ cor.GK.tau <- function(df){
   return(x)
 }
 
-getCors <- function(df) {
+getCorPearson <- function(df) {
   
-  corTauDF <- cor.GK.tau(df[df$Serie==1, 4:28])
   cor <- cor(dplyr::select_if(df[, 4:28], is.numeric), method = "pearson")
   
   pl1 <- ggcorrplot(cor, 
@@ -255,7 +266,7 @@ getCors <- function(df) {
              lab_size = 3, 
              method="square", 
              tl.cex = 10,
-             show.diag = FALSE,
+             show.diag = TRUE,
              show.legend = FALSE,
              outline.col="white",
              colors = c("tomato2", "white", "springgreen3"), 
@@ -263,43 +274,54 @@ getCors <- function(df) {
     ggtitle("Correlación de Pearson", 
             subtitle="Lista de genes unidos a Smaug de Chen")
   
+
+  print(pl1)
+  
+  
+}
+
+getCorTau <- function(df) {
+  corTauDF <- cor.GK.tau(df[df$Serie==1, 4:28])
+  
   pl2 <- ggcorrplot(corTauDF, 
-             lab = TRUE, 
-             lab_size = 3, 
-             method="circle", 
-             tl.cex = 8,
-             show.diag = FALSE,
-             show.legend = FALSE,
-             outline.col="white",
-             colors = c("tomato2", "white", "springgreen3"), 
-             ggtheme = theme_bw()) + 
+                    lab = TRUE, 
+                    lab_size = 3, 
+                    method="circle", 
+                    tl.cex = 8,
+                    show.diag = FALSE,
+                    show.legend = FALSE,
+                    outline.col="white",
+                    colors = c("tomato2", "white", "springgreen3"), 
+                    ggtheme = theme_bw()) + 
     ggtitle("Estadístico Tau de Goodman - Kruskal", 
             subtitle="Lista de genes unidos a Smaug de Chen")
-  print(pl1)
-  print(pl2)
   
+  print(pl2)
 }
 
 # 5. Analisis de la distribucion de todas las bases
 ###############################################################################
 plotBaseDistribution <- function(df){
-all.bases <- df %>% dplyr::select(Serie, "N(-1)"=N.1, "N(-2)"=N.2, 
-                                     "N2"=N2, "N5"=N5, "N6"=N6,"N7"=N7,"N8"=N8) %>%
+all.bases <- df %>% dplyr::select(Serie, "-2"=N.2, "-1"=N.1, 
+                                     "1"=N2, "4"=N5, "5"=N6,"6"=N7,"7"=N8) %>%
   melt(id=c("Serie")) %>% 
   dplyr::select(Serie, "Posicion"=variable, Base=value)
 
+all.bases$Serie <- revalue(all.bases$Serie, c("0"="Secuencias cDNA random", "1"="Secuencias cDNA originales"))
+
 all.bases <- all.bases[all.bases$Base!=" " & !is.na(all.bases$Base),] 
+all.bases$Base <- factor(all.bases$Base) 
 
 # PLOT 1
 pl1 <- ggplot(all.bases, aes(x=Posicion, fill= Base)) +
   geom_bar(position="fill", na.rm = TRUE, alpha=0.9, color="black") +
-  facet_grid( . ~ Serie , scales="free", space="free") + 
-  xlab("Base variable N") + geom_text(stat = "fill_labels", 
-                                      size = 3, fontface=2) +
+  facet_grid( . ~ Serie , scales="free", space="free") +
+  xlab("Posición N") + geom_text(stat = "fill_labels", 
+                                      size = 3, fontface=3) +
   ylab("Proporción") + coord_flip() +
-  ggtitle("Bases variables de la secuencia consenso SRE",
-          subtitle="Loops que aparecen en más del 5% de los transcriptos") + 
-  scale_fill_brewer()
+  ggtitle("Bases variables N en el motivo consenso SRE",
+          subtitle="Posiciones NNCNGGN[0..4]. del stem loop. La base C es la posición 0.") + scale_fill_brewer(palette = "Pastel2") +
+    theme_dark()
 
   return(pl1)
 }

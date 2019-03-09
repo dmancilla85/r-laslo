@@ -3,14 +3,14 @@
 # 2. MFE Energy
 
 laslo <- df
-shapiro.test(laslo[laslo$Serie=="Original", ]$RnaFoldMFE)
-shapiro.test(laslo[laslo$Serie=="Random", ]$RnaFoldMFE)
+shapiro.test(laslo[laslo$Serie==1, ]$RnaFoldMFE)
+shapiro.test(subset(laslo[laslo$Serie==0, ]$RnaFoldMFE), 3000)
 
-ksMFE <- wilcox.test(laslo[laslo$Serie=="Original", ]$RnaFoldMFE, 
-                     laslo[laslo$Serie=="Random", ]$RnaFoldMFE)
+ksMFE <- wilcox.test(laslo[laslo$Serie==1, ]$RnaFoldMFE, 
+                     laslo[laslo$Serie==0, ]$RnaFoldMFE)
 
 laslo %>%
-  ggplot(aes(x=RnaFoldMFE, fill=Serie)) + 
+  ggplot(aes(x=RnaFoldMFE, group=Serie, color=Serie)) + 
   geom_density(alpha=0.3) + 
   xlab("Mínima energía libre (kcal/mol)") +
   ylab("Densidad") +
@@ -23,28 +23,28 @@ laslo %>%
 ###############################################################################
 
 # 3.a Pares
-IQR(laslo[laslo$Serie=="Original", ]$Bulges)
-IQR(laslo[laslo$Serie=="Random", ]$Bulges)
+IQR(laslo[laslo$Serie=="1", ]$Bulges)
+IQR(laslo[laslo$Serie=="0", ]$Bulges)
 
-wt <- wilcox.test(laslo[laslo$Serie=="Original", ]$Bulges, 
-                  laslo[laslo$Serie=="Random", ]$Bulges)
+wt <- wilcox.test(laslo[laslo$Serie=="1", ]$Bulges, 
+                  laslo[laslo$Serie=="0", ]$Bulges)
 
 laslo %>%
-  ggplot(aes(x=Serie, y=Bulges, fill=Serie)) +
+  ggplot(aes(x=Serie, y=Bulges, group=Serie)) +
   geom_boxplot(varwidth = T, show.legend = FALSE) +
   ylab("Bases apareadas (bp)") + xlab(NULL) +
   ggtitle("Cantidad de bulges en el tallo (stem) de las horquillas",
           subtitle= paste(wt$method, "p-value:", formatC(wt$p.value, format="e", digits=2))) 
 
 # 3.a Pares
-IQR(laslo[laslo$Serie=="Original", ]$InternalLoops)
-IQR(laslo[laslo$Serie=="Random", ]$InternalLoops)
+IQR(laslo[laslo$Serie=="1", ]$InternalLoops)
+IQR(laslo[laslo$Serie=="0", ]$InternalLoops)
 
-wt <- wilcox.test(laslo[laslo$Serie=="Original", ]$InternalLoops, 
-                  laslo[laslo$Serie=="Random", ]$InternalLoops)
+wt <- wilcox.test(laslo[laslo$Serie=="1", ]$InternalLoops, 
+                  laslo[laslo$Serie=="0", ]$InternalLoops)
 
 laslo %>%
-  ggplot(aes(x=Serie, y=InternalLoops, fill=Serie)) +
+  ggplot(aes(x=Serie, y=InternalLoops, group=Serie)) +
   geom_boxplot(varwidth = T, show.legend = FALSE) +
   ylab("Bases apareadas (bp)") + xlab(NULL) +
   ggtitle("Cantidad de loops internos en el tallo (stem) de las horquillas",
@@ -56,10 +56,10 @@ laslo %>%
 # fix
 # laslo[laslo$Sense=="-" & str_sub(laslo$LoopPattern,1,1) != "C", ]$LoopPattern <-
 #   StrRev(laslo[laslo$Sense=="-" & str_sub(laslo$LoopPattern,1,1) != "C", ]$LoopPattern)
-
-laslo$LoopPattern <- factor(laslo$LoopPattern)  
-summary(laslo[laslo$Serie=="Original", ]$LoopPattern)
-summary(laslo[laslo$Serie=="Random", ]$LoopPattern)
+laslo <- df
+laslo$LoopPattern <- as.factor(laslo$LoopPattern)  
+summary(laslo[laslo$Serie==1, ]$LoopPattern)
+summary(laslo[laslo$Serie==0, ]$LoopPattern)
 
 
 prop.table(table(laslo$LoopPattern, laslo$Serie), 2)
@@ -67,12 +67,12 @@ prop.table(table(laslo$LoopPattern, laslo$Serie), 2)
 tb <- as.data.frame(table(laslo$LoopPattern, laslo$Serie))
 tb <- tb %>%
   spread(Var2,Freq) %>%
-  mutate(Observed = `Original`/ sum(`Original`)) %>%
-  mutate(Expected = `Random`/ sum(`Random`)) 
+  mutate(Observed = `1`/ sum(`1`)) %>%
+  mutate(Expected = `0`/ sum(`0`)) 
 tb
 
 # Hipotesis nula: Las proporciones son iguales para los dos sets
-a <- prop.test(tb$`Original`, tb$`Random`)
+a <- prop.test(tb$`1`, tb$`0`)
 # X-squared = 352.28, df = 4, p-value < 2.2e-16
 # alternative hypothesis: two.sided
 # sample estimates:
@@ -80,7 +80,7 @@ a <- prop.test(tb$`Original`, tb$`Random`)
 # 0.07622704 0.19134304 0.06760349 0.04407713 0.08033419 
 
 # Hipotesis nula: Las proporciones no son sign. diferentes
-g <- GTest(tb$`Original`, p=tb$Expected) #p.val < 2.2e-16
+g <- GTest(tb$`Observed`, p=tb$`Expected`) #p.val < 2.2e-16
 
 laslo %>% ggplot(aes(x=Serie, fill=LoopPattern)) + 
   geom_bar(position="fill", alpha= 0.9, 
