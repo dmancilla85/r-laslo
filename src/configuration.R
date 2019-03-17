@@ -73,6 +73,11 @@ if (!require(ggpubr)){
   library(ggpubr)
 }
 
+if (!require(e1071)){
+  install.packages('e1071')
+  library(e1071)
+}
+
 #cluster
 #vcd
 
@@ -83,7 +88,7 @@ print("Cargando funciones...")
 
 # 1. Carga de archivos en dos tandas (Original vs Random)
 ###############################################################################
-loadFiles <- function(path, pattern = "*.csv"){
+loadFiles <- function(path, pattern = "*.csv", takeRandoms = TRUE){
   temp <- list.files(path = path, pattern = pattern)
   
   for (i in 1:length(temp)){
@@ -92,15 +97,17 @@ loadFiles <- function(path, pattern = "*.csv"){
     
     if(grepl("_rnd", fileName)){
       # Is Random
-      if(i == 1){
-        df <- read.csv(paste(path,temp[i],sep=""), sep =";", 
-                       dec =",", stringsAsFactors = FALSE)
-        df$Serie = 0
-      } else {
-        aux <- read.csv(paste(path,temp[i],sep=""), sep =";", 
-                        dec =",", stringsAsFactors = FALSE)
-        aux$Serie = 0
-        df <- rbind(df, aux)
+      if(takeRandoms){
+        if(i == 1){
+          df <- read.csv(paste(path,temp[i],sep=""), sep =";", 
+                         dec =",", stringsAsFactors = FALSE)
+          df$Serie = 0
+        } else {
+          aux <- read.csv(paste(path,temp[i],sep=""), sep =";", 
+                          dec =",", stringsAsFactors = FALSE)
+          aux$Serie = 0
+          df <- rbind(df, aux)
+        }
       }
       
     } else {
@@ -158,7 +165,7 @@ formatEnsembl <- function(df){
   names(df)[names(df) == 'Column3'] <- 'GenSymbol'
   names(df)[names(df) == 'Column5'] <- 'Chromosome'
   df$Chromosome <- factor(df$Chromosome)
-  df$Serie <- factor(df$Serie)
+  #df$Serie <- factor(df$Serie)
   df$U_PercentSequence <- cut(df$U_PercentSequence, seq(0,1,.25))
   df$RelativePosition <- cut(df$RelativePosition, seq(0,1,.20))
   df$A_PercentSequence <- cut(df$A_PercentSequence, seq(0,1,.25))
@@ -303,11 +310,14 @@ getCorTau <- function(df) {
 ###############################################################################
 plotBaseDistribution <- function(df){
 all.bases <- df %>% dplyr::select(Serie, "-2"=N.2, "-1"=N.1, 
-                                     "1"=N2, "4"=N5, "5"=N6,"6"=N7,"7"=N8) %>%
+                                    "1"=N2, "4"=N5, "5"=N6,
+                                    "6"=N7,"7"=N8) %>%
   melt(id=c("Serie")) %>% 
   dplyr::select(Serie, "Posicion"=variable, Base=value)
 
-all.bases$Serie <- revalue(all.bases$Serie, c("0"="Secuencias cDNA random", "1"="Secuencias cDNA originales"))
+all.bases$Serie <- revalue(all.bases$Serie, 
+                           c("0"="Secuencias cDNA random", 
+                             "1"="Secuencias cDNA originales"))
 
 all.bases <- all.bases[all.bases$Base!=" " & !is.na(all.bases$Base),] 
 all.bases$Base <- factor(all.bases$Base) 
@@ -324,4 +334,9 @@ pl1 <- ggplot(all.bases, aes(x=Posicion, fill= Base)) +
     theme_dark()
 
   return(pl1)
+}
+
+obtenerLista <- function(name){
+  aux.df <- read.table(paste("./data/listas/", name, ".txt", sep=""), header=TRUE)
+  return(aux.df)
 }
