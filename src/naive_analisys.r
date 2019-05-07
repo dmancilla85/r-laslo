@@ -2,148 +2,167 @@
 source("./src/configuration.R")
 
 # Cargar datos
-fly.bound <- read.csv("./data/non_bound_fly/smaug_bound_fruitfly_8.csv",
+fly.bound <- read.csv("./data/stem15/fly_bound.csv",
                       sep =";", 
                       dec =",", stringsAsFactors = TRUE)
 
-fly.non_bound <- read.csv("./data/non_bound_fly/non_bound_smaug_8.csv",
+fly.non_bound <- read.csv("./data/stem15/fly_non_bound.csv",
                           sep =";", 
                           dec =",", stringsAsFactors = TRUE)
 
-fly.non_bound$Unido <- "No" 
-fly.non_bound$GenId <- fly.non_bound$Column5
-fly.non_bound$TranscriptoId <- fly.non_bound$Column2
-fly.non_bound$GenSymbol <- fly.non_bound$Column4
-fly.non_bound$Column1 <- NULL
-fly.non_bound$Column2 <- NULL
-fly.non_bound$Column3 <- NULL
-fly.non_bound$Column4 <- NULL
-fly.non_bound$Column5 <- NULL
-fly.non_bound$Column6 <- NULL
+# First random file
+fly.random <- read.csv("./data/stem15/fly_bound_rnd1.csv",
+                          sep =";", 
+                          dec =",", stringsAsFactors = TRUE)
+# Second random file
+fly.random <- rbind(fly.random, 
+                    read.csv("./data/stem15/fly_bound_rnd1.csv",
+                              sep =";", 
+                              dec =",", stringsAsFactors = TRUE))
+
 
 #Eliminar variables innecesarias
+fly.non_bound$Unido <- "No" 
+fly.non_bound <- formatEnsembl(fly.non_bound)
 fly.bound$Unido <- "Si"
 fly.bound <- formatEnsembl(fly.bound)
+fly.random$Unido <- "?"
+fly.random <- formatEnsembl(fly.random)
 
 glimpse(fly.bound)
+glimpse(fly.non_bound)
+glimpse(fly.random)
+
+fly <- rbind(fly.bound, fly.non_bound)
+fly$Unido <- factor(fly$Unido)
 
 # 2. Agregar columnas...
-bnd1 <- non_bound %>% select(	Chromosome, 	LoopPattern, 
+nv1 <- fly %>% select(	Chromosome, 	LoopPattern, 
 								TerminalPair,	N.2, N.1, N2,
 								N5, N6, N7, N8, 
 								Pairments, WooblePairs,
 								Bulges, InternalLoops, 
 								AU_PercentPairs, PurinePercentStem,
 								RnaFoldMFE, RelativePosition, 
-								Additional5Seq, Additional3Seq,
 								CG_PercentPairs, PurinePercentStem,
 								Unido)
 
-df <- rbind(bnd, bnd1)
-df$Unido <- factor(df$Unido)
+# Training model #########################
+set.seed(123)
+split <- initial_split(nv1, prop = .7, strata = "Unido")
+train <- training(split)
+test  <- testing(split)
 
-install.packages("e1071")
-library(e1071)
-nBMod <- naiveBayes(Unido  ~  ., data = df, laplace = 0.01)
+table(train$Unido) %>% prop.table()
+table(test$Unido) %>% prop.table()
+
+install.packages("caret")
+library(caret)
+
+# create response and feature data
+features <- setdiff(names(train), "Unido")
+x <- train[, features]
+y <- train$Unido
+
+# set up 10-fold cross validation procedure
+train_control <- trainControl(
+  method = "cv", 
+  number = 10
+)
+
+# set up tuning grid
+search_grid <- expand.grid(
+  usekernel = c(TRUE, FALSE),
+  fL = 0:5,
+  adjust = seq(0, 5, by = 1)
+)
+
+# train model
+nb.m2 <- train(
+  x = x,
+  y = y,
+  method = "nb",
+  trControl = train_control,
+  tuneGrid = search_grid,
+  preProc = c("BoxCox", "center", "scale", "pca")
+)
+
+y# top 5 modesl
+nb.m2$results %>% 
+  top_n(5, wt = Accuracy) %>%
+  arrange(desc(Accuracy))
+
+
+# plot search grid results
+plot(nb.m2)
+
+confusionMatrix(nb.m2)
+
+pred <- predict(nb.m2, newdata = test)
+confusionMatrix(pred, test$Unido)
+
+#install.packages("e1071")
+#library(e1071)
+
+nBMod <- naiveBayes(Unido  ~  ., data = nv1, laplace = 0.01)
 
 #Getting started with Naive Bayes in mlr
 #Install the package
-install.packages("mlr")
+#install.packages("mlr")
 #Loading the library
-library(mlr)
+#library(mlr)
 
-NB_pred <- predict(nBMod, df)
+NB_pred <- predict(nBMod, nv1)
   
-tb <- table(NB_pred, df$Unido)
+tb <- table(NB_pred, nv1$Unido)
 sum(diag(tb))/sum(tb)
 
-test <- read.csv("./data/non_bound_fly/Mig6_UTR_8.csv",
-                 sep =";", 
-                 dec =",", stringsAsFactors = TRUE)
-test$Unido <- NA
-test <- test %>% select(SequenceID, LoopPattern, TerminalPair,N.2, N.1, N2,
-                             N5, N6, N7, N8, Pairments, WooblePairs,
-                             Bulges, InternalLoops, AU_PercentPairs, PurinePercentStem,
-                             RnaFoldMFE, RelativePosition, Unido)
+summary(nBMod)
 
+##Confusion ############################
 
-test$Unido <- predict(nBMod, test)
-test
-
-mouse <- read.csv("./data/non_bound_fly/mouse_nizou_08_n6_nlp_t25.csv",
-                  sep =";", 
-                  dec =",", stringsAsFactors = TRUE)
-mouse$Unido <- NA
-mouse <- mouse %>% select(Column5, LoopPattern, TerminalPair,N.2, N.1, N2,
-                        N5, N6, N7, N8, Pairments, WooblePairs,
-                        Bulges, InternalLoops, AU_PercentPairs, PurinePercentStem,
-                        RnaFoldMFE, RelativePosition, Unido)
-
-mouse$Unido <- predict(nBMod, mouse)
-head(select(mouse, Column5, LoopPattern, N.1, N2, RnaFoldMFE, Unido), 20)
-
-#Create a classification task for learning on Titanic Dataset and specify the target feature
-task = makeClassifTask(data = df, target = "Unido")
-
-#Initialize the Naive Bayes classifier
-selected_model = makeLearner("classif.naiveBayes")
-
-#Train the model
-NB_mlr = train(selected_model, task)
-
-#Read the model learned  
-NB_mlr$learner.model
-
-#Predict on the dataset without passing the target feature
-predictions_mlr = as.data.frame(predict(NB_mlr, newdata = Titanic_dataset[,1:3]))
-
-##Confusion
-
-
-# glm
-if(!require(pROC)){
-  install.packages("pROC")
-  library(pROC)
-}
-
-setwd(paste(getwd(), "/data", sep=""))
-
-laslo <- loadFiles(path="./mouse/", pattern = "*.csv")
-mito <- loadFiles(path="./mitocondriales/", pattern = "*.csv")
-
-train <- sample(nrow(laslo), nrow(laslo)*0.75)
-
-# Specify a null model with no predictors
-null_model <- glm(Serie ~ 1, data = laslo[train,], family = "binomial")
-full_model <- glm(Serie  ~ RnaFoldMFE + LoopPattern + N.1 + N2 + N.2 + N5 + N6 + N7
-                  + Bulges + InternalLoops + CG_PercentPairs + N8
-                  + TerminalPair + WooblePairs + GU_PercentPairs, 
-                  data = laslo[train,], family = "binomial")
-# Use a forward stepwise algorithm to build a parsimonious model
-step_model <- step(null_model, scope = list(lower = null_model, upper = full_model), 
-                   direction = "forward")
-
-mean(laslo[train, ]$Serie)
-laslo$Serie_prob <- predict(step_model, laslo, type="response")
-laslo$Serie_pred <- ifelse(laslo$Serie_prob > 0.006962785, 1, 0)
-
-table(laslo[-train, ]$Serie, laslo[-train, ]$Serie_pred)
-ROC <- roc(laslo$Serie, laslo$Serie_prob)
-# Plot the ROC curve
-plot(ROC, col = "blue")
-# Calculate the area under the curve (AUC)
-auc(ROC)
-
-mean(mito$Serie)
-mito$Serie_prob <- predict(step_model, mito, type="response")
-mito$Serie_pred <- ifelse(mito$Serie_prob > 0.0077, 1, 0)
-
-table(mito$Serie, mito$Serie_pred)
-ROC <- roc(mito$Serie, mito$Serie_prob)
-# Plot the ROC curve
-plot(ROC, col = "blue")
-# Calculate the area under the curve (AUC)
-auc(ROC)
+# # glm
+# if(!require(pROC)){
+#   install.packages("pROC")
+#   library(pROC)
+# }
+# 
+# setwd(paste(getwd(), "/data", sep=""))
+# 
+# 
+# train <- sample(nrow(fly), nrow(fly)*0.75)
+# 
+# # Specify a null model with no predictors
+# null_model <- glm(Unido ~ 1, data = fly[train,], family = "binomial")
+# full_model <- glm(Unido  ~ RnaFoldMFE + LoopPattern + N.1 + N2 + N.2 + N5 + N6 + N7
+#                   + Bulges + InternalLoops + CG_PercentPairs + N8
+#                   + TerminalPair + WooblePairs + GU_PercentPairs + RelativePosition + Pairments, 
+#                   data = fly[train,], family = "binomial", control=glm.control(maxit=100))
+# # Use a forward stepwise algorithm to build a parsimonious model
+# step_model <- step(null_model, scope = list(lower = null_model, upper = full_model), 
+#                    direction = "forward")
+# 
+# mean(laslo[train, ]$Serie)
+# laslo$Serie_prob <- predict(step_model, laslo, type="response")
+# laslo$Serie_pred <- ifelse(laslo$Serie_prob > 0.006962785, 1, 0)
+# 
+# table(laslo[-train, ]$Serie, laslo[-train, ]$Serie_pred)
+# ROC <- roc(laslo$Serie, laslo$Serie_prob)
+# # Plot the ROC curve
+# plot(ROC, col = "blue")
+# # Calculate the area under the curve (AUC)
+# auc(ROC)
+# 
+# mean(mito$Serie)
+# mito$Serie_prob <- predict(step_model, mito, type="response")
+# mito$Serie_pred <- ifelse(mito$Serie_prob > 0.0077, 1, 0)
+# 
+# table(mito$Serie, mito$Serie_pred)
+# ROC <- roc(mito$Serie, mito$Serie_prob)
+# # Plot the ROC curve
+# plot(ROC, col = "blue")
+# # Calculate the area under the curve (AUC)
+# auc(ROC)
 
 
 

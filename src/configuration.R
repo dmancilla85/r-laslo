@@ -5,6 +5,11 @@ if (!require(psych)){
   library(psych)
 }
 
+if (!require(rsample)){
+  install.packages('rsample')
+  library(rsample)
+}
+
 if (!require(ggplot2)){
   install.packages('ggplot2')
   library(ggplot2)
@@ -86,6 +91,50 @@ if (!require(e1071)){
 ###############################################################################
 print("Cargando funciones...")
 
+############################### Inference
+analizarVariable <- function(original, varX, varY, exito = "Unido", n = 100){
+  
+  if (!require(infer)){
+    install.packages('infer')
+    library(infer)
+  }
+  
+  i_x <- grep(paste("^",varX,"$", sep=""), colnames(df))
+  i_y <- grep(paste("^",varY,"$", sep=""), colnames(df))
+  
+  if(!is.numeric(original[, i_x])){
+    print("El valor no es numerico")
+    return(NULL)
+  }
+  
+  # Perform 1000 permutations
+  data_perm <- original %>%
+    # Specify fórmula, con "Unido" como éxito
+    specify(varY ~ varX, success = exito) %>%
+    # Hipotesis nula de independencia
+    hypothesize(null="independence") %>% 
+    # Generar 1000 repeticiones (por permutacion)
+    generate(reps = 1000, type = "permute") %>% 
+    # Calculate the difference in proportions (male then female)
+    calculate(stat="diff in props") #, order = c("male", "female"))
+  
+  # plot1
+  # Density plot of 1000 permuted differences in proportions
+  plot1 <- ggplot(data_perm, aes(x = stat)) + 
+    geom_density()
+  
+  # plot2
+  plot2 <- # Plot permuted differences, diff_perm
+    ggplot(data_perm, aes(x = diff_perm)) + 
+    # Add a density layer
+    geom_density() +
+    # Add a vline layer with intercept diff_orig
+    geom_vline(aes(xintercept = diff_orig), color = "red")
+  
+}
+
+#########################################
+
 # 1. Carga de archivos en dos tandas (Original vs Random)
 ###############################################################################
 loadFiles <- function(path, pattern = "*.csv", takeRandoms = TRUE){
@@ -145,7 +194,7 @@ loadFiles <- function(path, pattern = "*.csv", takeRandoms = TRUE){
 
 # 2. Formato de los datos para Ensembl
 ###############################################################################
-formatEnsembl <- function(df){
+formatEnsembl <- function(df, factorizeAll=TRUE){
   df$Column4 <- NULL
   df$Column6 <- NULL
   df$LoopID <- NULL
@@ -166,15 +215,23 @@ formatEnsembl <- function(df){
   names(df)[names(df) == 'Column5'] <- 'Chromosome'
   df$Chromosome <- factor(df$Chromosome)
   #df$Serie <- factor(df$Serie)
-  df$U_PercentSequence <- cut(df$U_PercentSequence, seq(0,1,.25))
-  df$RelativePosition <- cut(df$RelativePosition, seq(0,1,.20))
-  df$A_PercentSequence <- cut(df$A_PercentSequence, seq(0,1,.25))
-  df$C_PercentSequence <- cut(df$C_PercentSequence, seq(0,1,.25))
-  df$G_PercentSequence <- cut(df$G_PercentSequence, seq(0,1,.25))
-  df$AU_PercentPairs <- cut(df$AU_PercentPairs, seq(0,1,.25))
-  df$GU_PercentPairs <- cut(df$GU_PercentPairs, seq(0,1,.25))
-  df$CG_PercentPairs <- cut(df$CG_PercentPairs, seq(0,1,.25))
-  df$PurinePercentStem <- cut(df$PurinePercentStem, seq(0,1,.25))
+  
+  if(factorizeAll){
+    df$U_PercentSequence <- cut(df$U_PercentSequence, seq(0,1,.25), include.lowest = TRUE)
+    df$RelativePosition <- cut(df$RelativePosition, seq(0,1,.20), include.lowest = TRUE)
+    df$A_PercentSequence <- cut(df$A_PercentSequence, seq(0,1,.25), include.lowest = TRUE)
+    df$C_PercentSequence <- cut(df$C_PercentSequence, seq(0,1,.25), include.lowest = TRUE)
+    df$G_PercentSequence <- cut(df$G_PercentSequence, seq(0,1,.25), include.lowest = TRUE)
+    df$AU_PercentPairs <- cut(df$AU_PercentPairs, seq(0,1,.25), include.lowest = TRUE)
+    df$GU_PercentPairs <- cut(df$GU_PercentPairs, seq(0,1,.25), include.lowest = TRUE)
+    df$CG_PercentPairs <- cut(df$CG_PercentPairs, seq(0,1,.25), include.lowest = TRUE)
+    df$PurinePercentStem <- cut(df$PurinePercentPairs, seq(0,1,.25), include.lowest = TRUE)
+    df$RnaFoldMFE <- cut(df$RnaFoldMFE, seq(-30,0,5), include.lowest = TRUE)
+    df$InternalLoops <- cut(df$InternalLoops, seq(0,5,1), include.lowest = TRUE)
+    df$Bulges <- cut(df$Bulges, seq(0,5,1), include.lowest = TRUE)
+    df$Pairments <- cut(df$Pairments, seq(4,15,2), include.lowest = TRUE)
+    df$WooblePairs <- cut(df$WooblePairs, seq(0,6,1), include.lowest = TRUE)
+  }
   
   #glimpse(df)
   
