@@ -23,31 +23,58 @@ fly.random <- rbind(fly.random,
 
 #Eliminar variables innecesarias
 fly.non_bound$Unido <- "No" 
-fly.non_bound <- formatEnsembl(fly.non_bound)
+fly.non_bound <- formatEnsembl(fly.non_bound, FALSE)
 fly.bound$Unido <- "Si"
-fly.bound <- formatEnsembl(fly.bound)
+fly.bound <- formatEnsembl(fly.bound, FALSE)
 fly.random$Unido <- "?"
-fly.random <- formatEnsembl(fly.random)
+fly.random <- formatEnsembl(fly.random, FALSE)
 
 glimpse(fly.bound)
 glimpse(fly.non_bound)
 glimpse(fly.random)
 
 fly <- rbind(fly.bound, fly.non_bound)
-fly$Unido <- factor(fly$Unido)
+fly$Unido <- factor(fly$Unido, levels=c("Si", "No"))
 
-# 2. Agregar columnas...
+# Análisis de las variables
+
+# 1. Total de bases en secuencia
+
+fly.bound %>% select(A_PercentSequence, C_PercentSequence, 
+               G_PercentSequence, U_PercentSequence) %>% 
+  gather(metric, value) %>% 
+  mutate(metric=paste ("", str_replace(metric, "_PercentSequence", "")),
+         value = value * 100) %>%
+  ggplot(aes(value, fill = metric)) + 
+  geom_histogram(show.legend = FALSE) + xlab("% total en secuencia") +
+  facet_wrap(~ metric, ncol=4) + ggtitle("Transcriptos unidos a Smaug")
+
+fly.non_bound %>% select(A_PercentSequence, C_PercentSequence, 
+                     G_PercentSequence, U_PercentSequence) %>% 
+  gather(metric, value) %>% 
+  mutate(metric=paste ("", str_replace(metric, "_PercentSequence", "")),
+         value = value * 100) %>%
+  ggplot(aes(value, fill = metric)) + 
+  geom_histogram(show.legend = FALSE) + xlab("% total en secuencia") +
+  facet_wrap(~ metric, ncol=4) + ggtitle("Transcriptos no unidos a Smaug")
+
+# 2. Cromosomas
+fly %>% ggplot(aes(x=Chromosome, fill=Unido)) + geom_bar(position="fill")
+  
+
+
+# Modelo NAIVE BAYES ############################################
+# 1. Seleccionar columnas
 nv1 <- fly %>% select(	Chromosome, 	LoopPattern, 
 								TerminalPair,	N.2, N.1, N2,
 								N5, N6, N7, N8, 
 								Pairments, WooblePairs,
-								Bulges, InternalLoops, 
-								AU_PercentPairs, PurinePercentStem,
+								Bulges, InternalLoops,RelativePosition,
+								AU_PercentPairs, GU_PercentPairs,
 								RnaFoldMFE, RelativePosition, 
-								CG_PercentPairs, PurinePercentStem,
-								Unido)
+								CG_PercentPairs, PurinePercentPairs,Unido)
 
-# Training model #########################
+# 2. Separar sets
 set.seed(123)
 split <- initial_split(nv1, prop = .7, strata = "Unido")
 train <- training(split)
@@ -56,28 +83,28 @@ test  <- testing(split)
 table(train$Unido) %>% prop.table()
 table(test$Unido) %>% prop.table()
 
-install.packages("caret")
-library(caret)
+#install.packages("caret")
+#library(caret)
 
-# create response and feature data
+# 3. Create response and feature data
 features <- setdiff(names(train), "Unido")
 x <- train[, features]
 y <- train$Unido
 
-# set up 10-fold cross validation procedure
+# 4. set up 10-fold cross validation procedure
 train_control <- trainControl(
   method = "cv", 
   number = 10
 )
 
-# set up tuning grid
+# 5. set up tuning grid
 search_grid <- expand.grid(
   usekernel = c(TRUE, FALSE),
   fL = 0:5,
   adjust = seq(0, 5, by = 1)
 )
 
-# train model
+# 6. train model
 nb.m2 <- train(
   x = x,
   y = y,
@@ -87,13 +114,13 @@ nb.m2 <- train(
   preProc = c("BoxCox", "center", "scale", "pca")
 )
 
-y# top 5 modesl
+# 7. ver top 5 models
 nb.m2$results %>% 
   top_n(5, wt = Accuracy) %>%
   arrange(desc(Accuracy))
 
 
-# plot search grid results
+# 8. plot search grid results
 plot(nb.m2)
 
 confusionMatrix(nb.m2)
@@ -101,128 +128,76 @@ confusionMatrix(nb.m2)
 pred <- predict(nb.m2, newdata = test)
 confusionMatrix(pred, test$Unido)
 
-#install.packages("e1071")
-#library(e1071)
+mean(nv1$Unido=="Si") # 0.6596544
 
-nBMod <- naiveBayes(Unido  ~  ., data = nv1, laplace = 0.01)
+nv1$Serie_prob <- predict(nb.m2, nv1, type="prob")
+nv1$Serie_pred <- ifelse(nv1$Serie_prob > 0.6594737, 1, 0)
 
-#Getting started with Naive Bayes in mlr
-#Install the package
-#install.packages("mlr")
-#Loading the library
-#library(mlr)
+ROC <- roc(nv1$Unido, nv1$Serie_prob$Si)
 
-NB_pred <- predict(nBMod, nv1)
-  
-tb <- table(NB_pred, nv1$Unido)
-sum(diag(tb))/sum(tb)
-
-summary(nBMod)
-
-##Confusion ############################
-
-# # glm
-# if(!require(pROC)){
-#   install.packages("pROC")
-#   library(pROC)
-# }
-# 
-# setwd(paste(getwd(), "/data", sep=""))
-# 
-# 
-# train <- sample(nrow(fly), nrow(fly)*0.75)
-# 
-# # Specify a null model with no predictors
-# null_model <- glm(Unido ~ 1, data = fly[train,], family = "binomial")
-# full_model <- glm(Unido  ~ RnaFoldMFE + LoopPattern + N.1 + N2 + N.2 + N5 + N6 + N7
-#                   + Bulges + InternalLoops + CG_PercentPairs + N8
-#                   + TerminalPair + WooblePairs + GU_PercentPairs + RelativePosition + Pairments, 
-#                   data = fly[train,], family = "binomial", control=glm.control(maxit=100))
-# # Use a forward stepwise algorithm to build a parsimonious model
-# step_model <- step(null_model, scope = list(lower = null_model, upper = full_model), 
-#                    direction = "forward")
-# 
-# mean(laslo[train, ]$Serie)
-# laslo$Serie_prob <- predict(step_model, laslo, type="response")
-# laslo$Serie_pred <- ifelse(laslo$Serie_prob > 0.006962785, 1, 0)
-# 
-# table(laslo[-train, ]$Serie, laslo[-train, ]$Serie_pred)
-# ROC <- roc(laslo$Serie, laslo$Serie_prob)
 # # Plot the ROC curve
-# plot(ROC, col = "blue")
+plot(main=paste("ROC - área bajo la curva:",round(auc(ROC),3)),ROC, col = "blue")
 # # Calculate the area under the curve (AUC)
-# auc(ROC)
-# 
-# mean(mito$Serie)
-# mito$Serie_prob <- predict(step_model, mito, type="response")
-# mito$Serie_pred <- ifelse(mito$Serie_prob > 0.0077, 1, 0)
-# 
-# table(mito$Serie, mito$Serie_pred)
-# ROC <- roc(mito$Serie, mito$Serie_prob)
-# # Plot the ROC curve
-# plot(ROC, col = "blue")
-# # Calculate the area under the curve (AUC)
-# auc(ROC)
 
 
 
 ######################
 # Load the rpart package
-library(rpart)
-
-# Build a lending model predicting loan outcome versus loan amount and credit score
-loan_model <- rpart(outcome ~ loan_amount + credit_score, 
-                    data = loans, method = "class", control = rpart.control(cp = 0))
-
-# Make a prediction for someone with good credit
-predict(loan_model, good_credit, type = "class")
-
-# Load the rpart.plot package
-library(rpart.plot)
-
-# Plot the loan_model with default settings
-rpart.plot(loan_model)
-
-# Plot the loan_model with customized settings
-rpart.plot(loan_model, type = 3, box.palette = c("red", "green"), fallen.leaves = TRUE)
-
-# Determine the number of rows for training
-nrow(loans)*0.75
-
-# Create a random sample of row IDs
-sample_rows <- sample(nrow(loans), 8484)
-
-# Create the training dataset
-loans_train <- loans[sample_rows, ]
-
-# Create the test dataset
-loans_test <- loans[-sample_rows, ]
-
-# Grow a tree using all of the available applicant data
-loan_model <- rpart(outcome ~ ., data = loans, method = "class", control = rpart.control(cp = 0))
-
-# Make predictions on the test dataset
-loans_test$pred <- predict(loan_model, loans_test, type="class")
-
-# Examine the confusion matrix
-table(loans_test$outcome, loans_test$pred)
-
-# Compute the accuracy on the test dataset
-mean(loans$outcome == loans_test$pred)
-
-##################################################
-# Load the randomForest package
-if(!require(randomForest)){
-  install.packages("randomForest")
-  library(randomForest)
-}
-
-# Build a random forest model
-loan_model <- randomForest(Serie  ~ RnaFoldMFE + LoopPattern + N.1 + N2 + N.2 + N5 + N6 + N7
-                           + Bulges + InternalLoops + CG_PercentPairs + N8
-                           + TerminalPair + WooblePairs + GU_PercentPairs, 
-                           data = laslo[train,])
-
-# Compute the accuracy of the random forest
-loans_test$pred <- predict(loan_model, loans_test, type="class")
-mean(loans_test$pred == loans_test$outcome)
+# library(rpart)
+# 
+# # Build a lending model predicting loan outcome versus loan amount and credit score
+# loan_model <- rpart(outcome ~ loan_amount + credit_score, 
+#                     data = loans, method = "class", control = rpart.control(cp = 0))
+# 
+# # Make a prediction for someone with good credit
+# predict(loan_model, good_credit, type = "class")
+# 
+# # Load the rpart.plot package
+# library(rpart.plot)
+# 
+# # Plot the loan_model with default settings
+# rpart.plot(loan_model)
+# 
+# # Plot the loan_model with customized settings
+# rpart.plot(loan_model, type = 3, box.palette = c("red", "green"), fallen.leaves = TRUE)
+# 
+# # Determine the number of rows for training
+# nrow(loans)*0.75
+# 
+# # Create a random sample of row IDs
+# sample_rows <- sample(nrow(loans), 8484)
+# 
+# # Create the training dataset
+# loans_train <- loans[sample_rows, ]
+# 
+# # Create the test dataset
+# loans_test <- loans[-sample_rows, ]
+# 
+# # Grow a tree using all of the available applicant data
+# loan_model <- rpart(outcome ~ ., data = loans, method = "class", control = rpart.control(cp = 0))
+# 
+# # Make predictions on the test dataset
+# loans_test$pred <- predict(loan_model, loans_test, type="class")
+# 
+# # Examine the confusion matrix
+# table(loans_test$outcome, loans_test$pred)
+# 
+# # Compute the accuracy on the test dataset
+# mean(loans$outcome == loans_test$pred)
+# 
+# ##################################################
+# # Load the randomForest package
+# if(!require(randomForest)){
+#   install.packages("randomForest")
+#   library(randomForest)
+# }
+# 
+# # Build a random forest model
+# loan_model <- randomForest(Serie  ~ RnaFoldMFE + LoopPattern + N.1 + N2 + N.2 + N5 + N6 + N7
+#                            + Bulges + InternalLoops + CG_PercentPairs + N8
+#                            + TerminalPair + WooblePairs + GU_PercentPairs, 
+#                            data = laslo[train,])
+# 
+# # Compute the accuracy of the random forest
+# loans_test$pred <- predict(loan_model, loans_test, type="class")
+# mean(loans_test$pred == loans_test$outcome)
