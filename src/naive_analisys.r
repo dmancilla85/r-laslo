@@ -22,11 +22,11 @@ fly.random <- rbind(fly.random,
 
 
 #Eliminar variables innecesarias
-fly.non_bound$Unido <- "No" 
+fly.non_bound$Tipo <- "No unidos" 
 fly.non_bound <- formatEnsembl(fly.non_bound, FALSE)
-fly.bound$Unido <- "Si"
+fly.bound$Tipo <- "Unidos"
 fly.bound <- formatEnsembl(fly.bound, FALSE)
-fly.random$Unido <- "?"
+fly.random$Tipo <- "Shuffled"
 fly.random <- formatEnsembl(fly.random, FALSE)
 
 glimpse(fly.bound)
@@ -34,33 +34,110 @@ glimpse(fly.non_bound)
 glimpse(fly.random)
 
 fly <- rbind(fly.bound, fly.non_bound)
-fly$Unido <- factor(fly$Unido, levels=c("Si", "No"))
+fly <- rbind(fly, fly.random)
+fly$Tipo <- factor(fly$Tipo, levels=c("Unidos", "No unidos", "Shuffled"))
 
 # Análisis de las variables
 
-# 1. Total de bases en secuencia
+# "GenID"              
+# "TranscriptoID"      
+# "GenSymbol"
 
-fly.bound %>% select(A_PercentSequence, C_PercentSequence, 
-               G_PercentSequence, U_PercentSequence) %>% 
-  gather(metric, value) %>% 
-  mutate(metric=paste ("", str_replace(metric, "_PercentSequence", "")),
-         value = value * 100) %>%
-  ggplot(aes(value, fill = metric)) + 
-  geom_histogram(show.legend = FALSE) + xlab("% total en secuencia") +
-  facet_wrap(~ metric, ncol=4) + ggtitle("Transcriptos unidos a Smaug")
+# "Chromosome"
+fly %>% filter(Tipo!="Shuffled") %>%
+  ggplot(aes(x=Chromosome, fill=Tipo)) +
+  geom_bar(color = "darkgray", position="fill", width = 0.6) + theme_gray() +
+  ggtitle("Distribución de los dos conjuntos en cromosomas") +
+  scale_fill_manual(values=c('blue2','brown3')) + xlab("Cromosoma") + ylab("Recuento") #480x480px
 
-fly.non_bound %>% select(A_PercentSequence, C_PercentSequence, 
-                     G_PercentSequence, U_PercentSequence) %>% 
-  gather(metric, value) %>% 
-  mutate(metric=paste ("", str_replace(metric, "_PercentSequence", "")),
-         value = value * 100) %>%
-  ggplot(aes(value, fill = metric)) + 
-  geom_histogram(show.legend = FALSE) + xlab("% total en secuencia") +
-  facet_wrap(~ metric, ncol=4) + ggtitle("Transcriptos no unidos a Smaug")
 
-# 2. Cromosomas
-fly %>% ggplot(aes(x=Chromosome, fill=Unido)) + geom_bar(position="fill")
-  
+# "LoopPattern" 
+fly %>%
+  ggplot(aes(fill=LoopPattern, x=1)) +
+  geom_bar(position="fill", color="darkgrey", ) + coord_polar(theta="y") +
+  geom_text(stat = "fill_labels", fontface="bold",
+            position = position_dodge(width = .8), size=3.5, 
+            check_overlap = TRUE, ) + labs(fill="Secuencia del loop") +
+  facet_wrap(~ Tipo) + ylab("") +
+  ggtitle("Motivos hallados en el loop", 
+          subtitle="Sobre todos los stem-loops hallados en los transcriptos") +
+  theme(axis.text.x=element_blank(), axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank()) + ylab("") + xlab("") +
+  scale_fill_brewer(palette="Spectral")
+
+# "TerminalPair"
+#install.packages("wesanderson")
+library(wesanderson)
+
+
+
+# "N.2" "N.1" "N2"  "N5"  "N6"  "N7"  "N8"
+# "Loop"              
+# "Pairments"          "WooblePairs"        "Bulges"             "InternalLoops"      
+# "SequenceLength"
+
+# "A_PercentSequence"  "C_PercentSequence" "G_PercentSequence"  "U_PercentSequence"  
+fly %>% filter(Tipo!="Shuffled") %>%
+  select(Tipo, A_PercentSequence, C_PercentSequence, 
+         G_PercentSequence, U_PercentSequence) %>% 
+  gather(metric, value, -Tipo) %>%
+  mutate(metric=paste ("", str_replace(metric, "_PercentSequence", "")), value = value * 100) %>%
+  ggplot(aes(x=value, fill=Tipo)) + ylab("Densidad") +
+  geom_histogram(aes(y=..density..), position="identity", bins=40, alpha=0.7, color="black") + 
+  xlab("Ratio de cada nucleótido en la secuencia entera") +
+  facet_wrap(~ metric,ncol=2, nrow=2 ) + theme_pubr() +
+  ggtitle("Composición de las secuencias cDNA", 
+          subtitle = "Sobre el total de bases en transcriptos") +
+  scale_fill_manual(values=c("blue","red3"))
+
+
+# "AU_PercentPairs"    "CG_PercentPairs"    "GU_PercentPairs" 
+fly %>% filter(Tipo!="Shuffled") %>%
+  select(Tipo, AU_PercentPairs, CG_PercentPairs, GU_PercentPairs) %>% 
+  gather(metric, value, -Tipo) %>%
+  mutate(metric=paste ("", str_replace(metric, "_PercentPairs", "")), value = value * 100) %>%
+  ggplot(aes(x=value, fill=Tipo)) + ylab("Densidad") +
+  geom_density(alpha=0.6) +
+  xlab("Ratio de cada apareamiento en los stem-loop") +
+  facet_wrap(~ metric,ncol=3, nrow=1 ) + theme_pubr() +
+  ggtitle("Composición de apareamientos en los stem-loops", 
+          subtitle = "Sobre el total de stem-loops en todos los transcriptos") +
+  scale_fill_manual(values=c("yellow2","magenta4"))
+
+# "PurinePercentPairs" 
+fly %>% 
+  select(Tipo, PurinePercentPairs) %>% 
+  ggplot(aes(x=PurinePercentPairs, group=Tipo)) + ylab("Densidad") +
+  geom_density(alpha=1, size=1) +
+  facet_wrap(~ Tipo) +
+  xlab("Ratio de A-G en apareamientos de los stems") +
+  theme_pubr() + 
+  ggtitle("A-G (purinas) en los stem-loops", 
+          subtitle = "Sobre el total de stem-loops en todos los transcriptos") +
+  geom_vline(data=fly, aes(xintercept=mean(PurinePercentPairs), color="blue"), 
+             linetype="dashed", show.legend = F, size=1) 
+
+# "RnaFoldMFE"  
+
+# fly %>%
+#   group_by(Tipo) %>%
+#   dplyr::summarize(Mean = mean(RnaFoldMFE, na.rm=TRUE))
+
+fly %>% 
+  select(Tipo, RnaFoldMFE) %>% 
+  ggplot(aes(x=RnaFoldMFE, group=Tipo)) + ylab("Densidad") +
+  geom_density(alpha=1, size=1) +
+  facet_wrap(~ Tipo) +
+  xlab("Mínima energía libre (kcal/mol)") +
+  theme_pubr() + 
+  ggtitle("Energía libre en los stem-loops", 
+          subtitle = "Sobre el total de stem-loops en todos los transcriptos") +
+  geom_vline(data=fly, aes(xintercept=mean(RnaFoldMFE), color="red"), 
+             linetype="dashed", show.legend = F, size=1) 
+
+# "RelativePosition"   
+# "Unido"    
 
 
 # Modelo NAIVE BAYES ############################################
