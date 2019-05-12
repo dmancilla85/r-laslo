@@ -26,7 +26,7 @@ fly.non_bound$Tipo <- "No unidos"
 fly.non_bound <- formatEnsembl(fly.non_bound, FALSE)
 fly.bound$Tipo <- "Unidos"
 fly.bound <- formatEnsembl(fly.bound, FALSE)
-fly.random$Tipo <- "Shuffled"
+fly.random$Tipo <- "Random"
 fly.random <- formatEnsembl(fly.random, FALSE)
 
 glimpse(fly.bound)
@@ -35,91 +35,177 @@ glimpse(fly.random)
 
 fly <- rbind(fly.bound, fly.non_bound)
 fly <- rbind(fly, fly.random)
-fly$Tipo <- factor(fly$Tipo, levels=c("Unidos", "No unidos", "Shuffled"))
+
+# Determinando niveles
+fly$Tipo <- factor(fly$Tipo, levels=c("Unidos", "No unidos", "Random"))
 
 # Análisis de las variables
-
+# *****************************************************************************
 # "GenID"              
 # "TranscriptoID"      
 # "GenSymbol"
 
 # "Chromosome"
-fly %>% filter(Tipo!="Shuffled") %>%
+# *****************************************************************************
+fly %>% filter(Tipo!="Random") %>%
   ggplot(aes(x=Chromosome, fill=Tipo)) +
   geom_bar(color = "darkgray", position="fill", width = 0.6) + theme_gray() +
-  ggtitle("Distribución de los dos conjuntos en cromosomas") +
+  ggtitle("Distribución de los dos conjuntos en cromosomas",
+          subtitle = "") + labs(fill="Grupo") +
   scale_fill_manual(values=c('blue2','brown3')) + xlab("Cromosoma") + ylab("Recuento") #480x480px
 
 
 # "LoopPattern" 
+# *****************************************************************************
 fly %>%
   ggplot(aes(fill=LoopPattern, x=1)) +
   geom_bar(position="fill", color="darkgrey", ) + coord_polar(theta="y") +
   geom_text(stat = "fill_labels", fontface="bold",
             position = position_dodge(width = .8), size=3.5, 
-            check_overlap = TRUE, ) + labs(fill="Secuencia del loop") +
+            check_overlap = TRUE, ) + labs(fill="Patrón del loop") +
   facet_wrap(~ Tipo) + ylab("") +
-  ggtitle("Motivos hallados en el loop", 
-          subtitle="Sobre todos los stem-loops hallados en los transcriptos") +
-  theme(axis.text.x=element_blank(), axis.text.y = element_blank(),
+  ggtitle("Secuencias consenso buscadas en los bucles", 
+          subtitle="Sobre todos los stem-loops hallados en los transcriptos.") +
+  theme(axis.text.x=element_blank(), 
+        axis.text.y = element_blank(),
         axis.ticks = element_blank(),
-        panel.background = element_blank()) + ylab("") + xlab("") +
-  scale_fill_brewer(palette="Spectral")
+        panel.background = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA),
+        strip.background = element_blank(),
+        strip.text = element_text(face = "bold"),
+        legend.text = element_text(face = "bold")) + 
+  ylab("") + xlab("") +
+  scale_fill_brewer(palette="Spectral") 
 
 # "TerminalPair"
+# *****************************************************************************
 #install.packages("wesanderson")
 library(wesanderson)
 
+plot(fly$Tipo, fly$TerminalPair, col=wes_palette("GrandBudapest1"))
+fly %>% ggplot(aes(Tipo,fill=TerminalPair)) + 
+  geom_bar(stat="count") + labs(fill="Par de cierre") +
+  ggtitle("Apareamientos de cierre del loop", 
+          subtitle="Sobre todos los stem-loops hallados en los transcriptos.") +
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_rect(colour="darkgrey", fill=NA)) + xlab("Grupo") +
+  stat_stack_labels() +
+  scale_fill_manual(values = wes_palette(6, name = "Darjeeling1", type = "continuous"))
 
 
 # "N.2" "N.1" "N2"  "N5"  "N6"  "N7"  "N8"
-# "Loop"              
-# "Pairments"          "WooblePairs"        "Bulges"             "InternalLoops"      
+# *****************************************************************************
+fly %>% 
+  select (Tipo,N.2,N.1,N2,N5,N6,N7,N8) %>% 
+  gather(metric,value,-Tipo ) %>%
+  filter(value %in% c("A","G","C","U")) %>%
+  mutate(metric = str_replace_all(metric, "N.1", "N(-1)")) %>%
+  mutate(metric = str_replace_all(metric, "N.2", "N(-2)")) %>%
+  ggplot(aes(fill=value, x=1)) +
+  geom_bar(position="fill", color="darkgrey", ) + coord_polar(theta="y") +
+  labs(fill="Base") +
+  ggtitle("Frecuencia de bases en cada posición variable (N) del loop",
+          subtitle="Sobre todos los stem-loops hallados en los transcriptos.") +
+  geom_text(stat = "fill_labels", fontface="bold",
+            position = position_dodge(width = .8), size=3.2, 
+            check_overlap = TRUE, color="orangered2") +
+  facet_grid(Tipo ~ metric) +
+  theme(axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.background = element_rect(fill="beige"),
+        panel.border = element_rect(colour="darkgrey", fill = NA),
+        strip.background = element_blank(),
+        strip.text = element_text(face = "bold"),
+        plot.background = element_rect(fill="seashell")) +
+  scale_fill_manual(values=wes_palette("IsleofDogs2"))
+  
+
+# "Loop"
+# *****************************************************************************
+
+
+# "Pairments"          
+#*****************************************************************************
+  wes_palettes
+
+#"WooblePairs"        "Bulges"             "InternalLoops"   
+fly %>%  
+  select(Tipo,WooblePairs,Bulges,InternalLoops) %>%
+  gather(metric, value, -Tipo) %>%
+  mutate(metric=str_replace_all(metric, "WooblePairs", "Pares GU")) %>%
+  mutate(metric=str_replace_all(metric, "InternalLoops", "Loops internos")) %>%
+  ggplot(aes(x=value,fill=metric)) +
+  geom_histogram(show.legend = F, bins = 8, color="black", lwd=0.8) +
+  labs(fill="") +
+  theme(panel.background = element_rect(fill="azure"),
+        axis.line = element_blank(),
+        panel.grid = element_blank(),
+        panel.border = element_rect(colour="black", fill=NA),
+        strip.background = element_blank(),
+        strip.text = element_text(face="bold"),
+        plot.background = element_rect(fill="whitesmoke")) +
+  ggtitle("Propiedades de los stem-loops", subtitle="") + 
+  xlab("Cantidad") + ylab("Stem-loops") +
+  facet_grid(Tipo ~ metric) +
+  scale_fill_manual(values=wes_palette("Darjeeling2"))
+
 # "SequenceLength"
 
-# "A_PercentSequence"  "C_PercentSequence" "G_PercentSequence"  "U_PercentSequence"  
-fly %>% filter(Tipo!="Shuffled") %>%
+# N PercentSequence  
+# *****************************************************************************
+fly %>% filter(Tipo!="Random") %>%
   select(Tipo, A_PercentSequence, C_PercentSequence, 
          G_PercentSequence, U_PercentSequence) %>% 
   gather(metric, value, -Tipo) %>%
   mutate(metric=paste ("", str_replace(metric, "_PercentSequence", "")), value = value * 100) %>%
   ggplot(aes(x=value, fill=Tipo)) + ylab("Densidad") +
-  geom_histogram(aes(y=..density..), position="identity", bins=40, alpha=0.7, color="black") + 
+  geom_histogram(aes(y=..density..), position="identity", bins=40, alpha=0.5, color="black") + 
   xlab("Ratio de cada nucleótido en la secuencia entera") +
   facet_wrap(~ metric,ncol=2, nrow=2 ) + theme_pubr() +
   ggtitle("Composición de las secuencias cDNA", 
           subtitle = "Sobre el total de bases en transcriptos") +
-  scale_fill_manual(values=c("blue","red3"))
+  scale_fill_manual(values=wes_palette("Cavalcanti1"))
 
 
-# "AU_PercentPairs"    "CG_PercentPairs"    "GU_PercentPairs" 
+# Percent Pairs in Stem 
+# *****************************************************************************
 fly %>% filter(Tipo!="Shuffled") %>%
   select(Tipo, AU_PercentPairs, CG_PercentPairs, GU_PercentPairs) %>% 
   gather(metric, value, -Tipo) %>%
   mutate(metric=paste ("", str_replace(metric, "_PercentPairs", "")), value = value * 100) %>%
-  ggplot(aes(x=value, fill=Tipo)) + ylab("Densidad") +
-  geom_density(alpha=0.6) +
+  ggplot(aes(y=value, x=Tipo)) + ylab("Densidad") +
+  geom_boxplot(aes(colour=metric),
+               outlier.colour = "red", outlier.shape = 1,
+               lwd = 1.3) + 
+  labs(colour="Par de cierre") +
   xlab("Ratio de cada apareamiento en los stem-loop") +
-  facet_wrap(~ metric,ncol=3, nrow=1 ) + theme_pubr() +
   ggtitle("Composición de apareamientos en los stem-loops", 
           subtitle = "Sobre el total de stem-loops en todos los transcriptos") +
-  scale_fill_manual(values=c("yellow2","magenta4"))
+  theme(panel.border = element_rect(colour="darkgrey", fill=NA)) +
+  scale_colour_manual(values=wes_palette("FantasticFox1")) 
 
-# "PurinePercentPairs" 
+# "PurinePercentPairs"
+# *****************************************************************************
 fly %>% 
   select(Tipo, PurinePercentPairs) %>% 
   ggplot(aes(x=PurinePercentPairs, group=Tipo)) + ylab("Densidad") +
   geom_density(alpha=1, size=1) +
   facet_wrap(~ Tipo) +
   xlab("Ratio de A-G en apareamientos de los stems") +
-  theme_pubr() + 
-  ggtitle("A-G (purinas) en los stem-loops", 
+  theme_pubr() +
+  theme(strip.background = element_rect(colour="white", fill="lightgrey"),
+        strip.text = element_text(face="bold")) +
+  ggtitle("Contenido de bases A-G (purinas) en los stem-loops", 
           subtitle = "Sobre el total de stem-loops en todos los transcriptos") +
   geom_vline(data=fly, aes(xintercept=mean(PurinePercentPairs), color="blue"), 
              linetype="dashed", show.legend = F, size=1) 
 
 # "RnaFoldMFE"  
-
+# *****************************************************************************
 # fly %>%
 #   group_by(Tipo) %>%
 #   dplyr::summarize(Mean = mean(RnaFoldMFE, na.rm=TRUE))
@@ -127,22 +213,36 @@ fly %>%
 fly %>% 
   select(Tipo, RnaFoldMFE) %>% 
   ggplot(aes(x=RnaFoldMFE, group=Tipo)) + ylab("Densidad") +
-  geom_density(alpha=1, size=1) +
+  geom_density(alpha=1, size=0.7) +
   facet_wrap(~ Tipo) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face="bold")) +
+  scale_x_continuous(breaks = round(seq(min(fly$RnaFoldMFE), 
+                                        max(fly$RnaFoldMFE), by = 4),1))  +
+  scale_y_continuous(breaks=seq(0, 0.2, by=0.02)) +
   xlab("Mínima energía libre (kcal/mol)") +
-  theme_pubr() + 
   ggtitle("Energía libre en los stem-loops", 
           subtitle = "Sobre el total de stem-loops en todos los transcriptos") +
-  geom_vline(data=fly, aes(xintercept=mean(RnaFoldMFE), color="red"), 
-             linetype="dashed", show.legend = F, size=1) 
+  geom_vline(data=filter(fly,Tipo=="Unidos"), aes(xintercept=mean(RnaFoldMFE), group=Tipo),
+             color="red", linetype="dashed", show.legend = F, size=1) +
+  geom_vline(data=filter(fly,Tipo=="No unidos"), aes(xintercept=mean(RnaFoldMFE), group=Tipo),
+             color="blue", linetype="dashed", show.legend = F, size=1) +
+  geom_vline(data=filter(fly,Tipo=="Random"), aes(xintercept=mean(RnaFoldMFE), group=Tipo),
+             color="darkgreen", linetype="dashed", show.legend = F, size=1) 
 
-# "RelativePosition"   
-# "Unido"    
+# "RelativePosition"
+# *****************************************************************************
+# no usar
+fly %>% ggplot(aes(color=Tipo, x=RelativePosition, y=(-1)*RnaFoldMFE)) +
+  geom_smooth(method="loess") +
+  ggtitle("Variación de la estabilidad con respecto a la posición relativa en la secuencia") +
+  theme_pubr()
 
 
 # Modelo NAIVE BAYES ############################################
 # 1. Seleccionar columnas
-nv1 <- fly %>% select(	Chromosome, 	LoopPattern, 
+nv1 <- fly %>%
+  filter(Tipo != "Shuffled") %>% select(	Chromosome, 	LoopPattern, 
 								TerminalPair,	N.2, N.1, N2,
 								N5, N6, N7, N8, 
 								Pairments, WooblePairs,
