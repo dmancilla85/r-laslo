@@ -26,8 +26,17 @@ fly.non_bound$Tipo <- "No unidos"
 fly.non_bound <- formatEnsembl(fly.non_bound, FALSE)
 fly.bound$Tipo <- "Unidos"
 fly.bound <- formatEnsembl(fly.bound, FALSE)
+fly.non_bound$GenID <- as.character(fly.non_bound$GenID)
+fly.random$GenID <- as.character(fly.random$GenID)
+fly.bound$GenID <- as.character(fly.bound$GenID)
+
+
+# add random
 fly.random$Tipo <- "Random"
 fly.random <- formatEnsembl(fly.random, FALSE)
+
+# check intersections
+fly.bound %>% inner_join(fly.non_bound, by=c("GenID"))
 
 glimpse(fly.bound)
 glimpse(fly.non_bound)
@@ -41,13 +50,170 @@ fly$Tipo <- factor(fly$Tipo, levels=c("Unidos", "No unidos", "Random"))
 
 # Análisis de las variables
 # *****************************************************************************
+#Hay correlaciones??
+cfly <- fly.bound %>% 
+  select(-Tipo,-GenID, -TranscriptoID,-GenSymbol, -Loop, -SequenceLength,
+         -TerminalPair,
+         -GU_PercentPairs,-AU_PercentPairs, -A_PercentSequence) 
+
+cfly %>% getCorPearson()
+
+cfly %>% getCorTau()
+
 # "GenID"              
-# "TranscriptoID"      
-# "GenSymbol"
+# "TranscriptoID"
+require(gridExtra)
+
+fly$id <- paste(fly$GenSymbol, fly$N.2,fly$N.1, fly$Loop) 
+
+pairs <- fly %>%  filter(str_length(LoopPattern) <= 8) %>%
+  distinct(Tipo,LoopPattern, Pairments, id) %>% 
+  group_by(Tipo,LoopPattern, Pairments) %>% 
+  dplyr::summarise(n=n()) %>%
+  mutate(freq=n/sum(n)) %>%
+  ggplot(aes(x=Pairments, y=freq*100, group=Tipo,color=Tipo )) +
+  geom_line(linetype="dashed") + 
+  xlab("Longitud del stem") +
+  scale_y_continuous(breaks=seq(0, 60, by=10), limits=c(0,60)) +
+  geom_point(aes(shape=Tipo), show.legend = F) + 
+  ylab("%") + labs(color="Listado") +
+  facet_grid(~LoopPattern) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face="bold"),
+        plot.background = element_rect(fill="floralwhite"))
+
+wooble <- fly %>% filter(str_length(LoopPattern) <= 8) %>%
+  distinct(Tipo,LoopPattern, WooblePairs, id) %>% 
+  group_by(Tipo,LoopPattern, WooblePairs) %>% 
+  dplyr::summarise(n=n()) %>%
+  mutate(freq=n/sum(n)) %>%
+  ggplot(aes(x=WooblePairs, y=freq*100, group=Tipo,color=Tipo )) +
+  geom_line(linetype="dashed", show.legend = F) + 
+  xlab("Apareamientos GU") +
+  geom_point(aes(shape=Tipo), show.legend = F) + 
+  ylab("%") + labs(color="Listado") +
+  scale_y_continuous(breaks=seq(0, 60, by=10), limits=c(0,60)) +
+  facet_grid(~LoopPattern) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face="bold"),
+        plot.background = element_rect(fill="floralwhite"))
+
+bulges <- fly %>% filter(str_length(LoopPattern) <= 8) %>%
+  distinct(Tipo,LoopPattern, Bulges, id) %>% 
+  group_by(Tipo,LoopPattern, Bulges) %>% 
+  dplyr::summarise(n=n()) %>%
+  mutate(freq=n/sum(n)) %>%
+  ggplot(aes(x=Bulges, y=freq*100, group=Tipo,color=Tipo )) +
+  geom_line(linetype="dashed", show.legend = F) + 
+  xlab("Bulges") +
+  geom_point(aes(shape=Tipo), show.legend = F) + 
+  ylab("%") + labs(color="Listado") +
+  facet_grid(~LoopPattern)+
+  scale_y_continuous(breaks=seq(0, 60, by=10), limits=c(0,60)) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face="bold"),
+        plot.background = element_rect(fill="floralwhite"))
+
+internals <- fly %>% filter(str_length(LoopPattern) <= 8) %>%
+  distinct(Tipo,LoopPattern, InternalLoops, id) %>% 
+  group_by(Tipo,LoopPattern, InternalLoops) %>% 
+  dplyr::summarise(n=n()) %>%
+  mutate(freq=n/sum(n)) %>%
+  ggplot(aes(x=InternalLoops, y=freq*100, group=Tipo,color=Tipo )) +
+  geom_line(linetype="dashed", show.legend = F) + 
+  xlab("Loops internos") +
+  geom_point(aes(shape=Tipo), show.legend = F) + 
+  ylab("%") + labs(color="Listado") +
+  facet_grid(~LoopPattern)+
+  scale_y_continuous(breaks=seq(0, 60, by=10), limits=c(0,60)) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face="bold"),
+        plot.background = element_rect(fill="floralwhite"))
+
+grid.arrange(pairs, wooble, bulges, internals, ncol=1,
+             top = text_grob("% Genes acertados por patrón del loop", 
+                             face="bold",size = 13.5),
+             bottom = "")
+
+####################################
+
+n1 <- fly %>%  filter(str_length(LoopPattern) <= 8) %>%
+  distinct(Tipo,LoopPattern, N.1, id) %>% 
+  group_by(Tipo,LoopPattern, N.1) %>% 
+  dplyr::summarise(n=n()) %>%
+  mutate(freq=n/sum(n)) %>%
+  ggplot(aes(x=N.1, y=freq*100, group=Tipo,color=Tipo )) +
+  geom_line(linetype="dashed") + 
+  xlab("Base predecesora (N-1)") +
+  scale_y_continuous(breaks=seq(0, 60, by=10), limits=c(0,60)) +
+  geom_point(aes(shape=Tipo), show.legend = F) + 
+  ylab("%") + labs(color="Listado") +
+  facet_grid(~LoopPattern) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face="bold"),
+        plot.background = element_rect(fill="floralwhite"))
+
+n2 <- fly %>% filter(str_length(LoopPattern) <= 8) %>%
+  distinct(Tipo,LoopPattern, N2, id) %>% 
+  group_by(Tipo,LoopPattern, N2) %>% 
+  dplyr::summarise(n=n()) %>%
+  mutate(freq=n/sum(n)) %>%
+  ggplot(aes(x=N2, y=freq*100, group=Tipo,color=Tipo )) +
+  geom_line(linetype="dashed", show.legend = F) + 
+  xlab("Base N2") +
+  geom_point(aes(shape=Tipo), show.legend = F) + 
+  ylab("%") + labs(color="Listado") +
+  facet_grid(~LoopPattern)+
+  scale_y_continuous(breaks=seq(0, 60, by=10), limits=c(0,60)) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face="bold"),
+        plot.background = element_rect(fill="floralwhite"))
+
+grid.arrange(n1, n2, ncol=1,
+             top = text_grob("% Genes acertados por patrón del loop", 
+                             face="bold",size = 13.5),
+             bottom = "")
+
+##########################
+
+# # "GenSymbol"
+# a <- fly %>% distinct(Tipo,GenSymbol, id) %>%
+#   filter(Tipo=="Unidos") %>%
+#   group_by(GenSymbol) %>%
+#   dplyr::summarise(Unidos=n()) 
+# 
+# b <- fly %>% distinct(Tipo,GenSymbol, id) %>%
+#   filter(Tipo=="Random") %>%
+#   group_by(GenSymbol) %>%
+#   dplyr::summarise(Random=n()) 
+# 
+# nrow(a)
+# nrow(b)
+# 
+# a %>% inner_join(b) %>% filter(Unidos>2) %>%
+#   mutate(y1=Unidos/sum(Unidos),
+#          y2=Random/sum(Random)) %>%
+#   arrange(Unidos) %>%
+#   head(100) %>%
+#   ggplot() +
+#   geom_segment( aes(x=GenSymbol, xend=GenSymbol, 
+#                     y=y1, yend=y2), color="grey") +
+#   geom_point( aes(x=GenSymbol, y=y1), color=rgb(0.2,0.7,0.1,0.5), size=2.5 ) +
+#   geom_point( aes(x=GenSymbol, y=y2), color=rgb(0.7,0.2,0.1,0.5), size=1.5 ) +
+#   coord_flip() + ylab("Frecuencia") +
+#   theme_light() +
+#   theme(
+#     legend.position = "none",
+#     panel.border = element_blank(),
+#     axis.text.y = element_text(size=8)
+#   ) + xlab("")
+
+############################
+
 
 # "Chromosome"
 # *****************************************************************************
-fly %>% filter(Tipo!="Random") %>%
+chromo <- fly %>% filter(Tipo!="Random") %>%
   ggplot(aes(x=Chromosome, fill=Tipo)) +
   geom_bar(color = "darkgray", position="fill", width = 0.6) + theme_gray() +
   ggtitle("Distribución de los dos conjuntos en cromosomas",
@@ -57,7 +223,7 @@ fly %>% filter(Tipo!="Random") %>%
 
 # "LoopPattern" 
 # *****************************************************************************
-fly %>%
+patt <- fly %>%
   ggplot(aes(fill=LoopPattern, x=1)) +
   geom_bar(position="fill", color="darkgrey", ) + coord_polar(theta="y") +
   geom_text(stat = "fill_labels", fontface="bold",
@@ -82,8 +248,7 @@ fly %>%
 #install.packages("wesanderson")
 library(wesanderson)
 
-plot(fly$Tipo, fly$TerminalPair, col=wes_palette("GrandBudapest1"))
-fly %>% ggplot(aes(Tipo,fill=TerminalPair)) + 
+pairs <- fly %>% ggplot(aes(Tipo,fill=TerminalPair)) + 
   geom_bar(stat="count") + labs(fill="Par de cierre") +
   ggtitle("Apareamientos de cierre del loop", 
           subtitle="Sobre todos los stem-loops hallados en los transcriptos.") +
@@ -95,8 +260,9 @@ fly %>% ggplot(aes(Tipo,fill=TerminalPair)) +
   stat_stack_labels() +
   scale_fill_manual(values = wes_palette(6, name = "Darjeeling1", type = "continuous"))
 
+grid.arrange(chromo, pairs, patt)
 
-# "N.2" "N.1" "N2"  "N5"  "N6"  "N7"  "N8"
+# Posiciones N variables
 # *****************************************************************************
 fly %>% 
   select (Tipo,N.2,N.1,N2,N5,N6,N7,N8) %>% 
@@ -126,14 +292,14 @@ fly %>%
 
 # "Loop"
 # *****************************************************************************
-
+# otro lollipop chart?
 
 # "Pairments"          
 #*****************************************************************************
   wes_palettes
 
 #"WooblePairs"        "Bulges"             "InternalLoops"   
-fly %>%  
+var <- fly %>%  
   select(Tipo,WooblePairs,Bulges,InternalLoops) %>%
   gather(metric, value, -Tipo) %>%
   mutate(metric=str_replace_all(metric, "WooblePairs", "Pares GU")) %>%
@@ -153,7 +319,6 @@ fly %>%
   facet_grid(Tipo ~ metric) +
   scale_fill_manual(values=wes_palette("Darjeeling2"))
 
-# "SequenceLength"
 
 # N PercentSequence  
 # *****************************************************************************
@@ -173,7 +338,7 @@ fly %>% filter(Tipo!="Random") %>%
 
 # Percent Pairs in Stem 
 # *****************************************************************************
-fly %>% filter(Tipo!="Shuffled") %>%
+pairs2 <- fly %>% filter(Tipo!="Random") %>%
   select(Tipo, AU_PercentPairs, CG_PercentPairs, GU_PercentPairs) %>% 
   gather(metric, value, -Tipo) %>%
   mutate(metric=paste ("", str_replace(metric, "_PercentPairs", "")), value = value * 100) %>%
@@ -181,7 +346,7 @@ fly %>% filter(Tipo!="Shuffled") %>%
   geom_boxplot(aes(colour=metric),
                outlier.colour = "red", outlier.shape = 1,
                lwd = 1.3) + 
-  labs(colour="Par de cierre") +
+  labs(colour="Apareamiento") +
   xlab("Ratio de cada apareamiento en los stem-loop") +
   ggtitle("Composición de apareamientos en los stem-loops", 
           subtitle = "Sobre el total de stem-loops en todos los transcriptos") +
@@ -210,7 +375,7 @@ fly %>%
 #   group_by(Tipo) %>%
 #   dplyr::summarize(Mean = mean(RnaFoldMFE, na.rm=TRUE))
 
-fly %>% 
+mfe <- fly %>% 
   select(Tipo, RnaFoldMFE) %>% 
   ggplot(aes(x=RnaFoldMFE, group=Tipo)) + ylab("Densidad") +
   geom_density(alpha=1, size=0.7) +
@@ -230,6 +395,8 @@ fly %>%
   geom_vline(data=filter(fly,Tipo=="Random"), aes(xintercept=mean(RnaFoldMFE), group=Tipo),
              color="darkgreen", linetype="dashed", show.legend = F, size=1) 
 
+grid.arrange(pairs2, mfe)
+
 # "RelativePosition"
 # *****************************************************************************
 # no usar
@@ -238,51 +405,61 @@ fly %>% ggplot(aes(color=Tipo, x=RelativePosition, y=(-1)*RnaFoldMFE)) +
   ggtitle("Variación de la estabilidad con respecto a la posición relativa en la secuencia") +
   theme_pubr()
 
+# Validación estadística
+install.packages("gplots")
+library(gplots)
+
+fly <- fly %>% filter(Tipo != "No unidos")
+fly$Tipo <- factor(fly$Tipo)
+tb <- table(fly$LoopPattern)
+balloonplot(t(tb), main ="patterns", xlab ="", ylab="",
+            label = FALSE, show.margins = FALSE)
+library("graphics")
+mosaicplot(tb, shade = TRUE, las=2,
+           main = "housetasks")
+chisq <- chisq.test(tb)
+chisq$p.value < 0.05
 
 # Modelo NAIVE BAYES ############################################
 # 1. Seleccionar columnas
-nv1 <- fly %>%
-  filter(Tipo != "Shuffled") %>% select(	Chromosome, 	LoopPattern, 
-								TerminalPair,	N.2, N.1, N2,
-								N5, N6, N7, N8, 
-								Pairments, WooblePairs,
-								Bulges, InternalLoops,RelativePosition,
-								AU_PercentPairs, GU_PercentPairs,
-								RnaFoldMFE, RelativePosition, 
-								CG_PercentPairs, PurinePercentPairs,Unido)
+nv1 <- fly %>% select(-GenID, -TranscriptoID,-GenSymbol, -Loop, -SequenceLength,
+                      -TerminalPair,
+                      -GU_PercentPairs,-AU_PercentPairs, -A_PercentSequence) %>%
+  filter(Tipo != "Random") 
+nv1$Tipo <- factor(nv1$Tipo)
 
 # 2. Separar sets
 set.seed(123)
-split <- initial_split(nv1, prop = .7, strata = "Unido")
+split <- initial_split(nv1, prop = .7, strata = "Tipo")
 train <- training(split)
 test  <- testing(split)
 
-table(train$Unido) %>% prop.table()
-table(test$Unido) %>% prop.table()
+table(train$Tipo) %>% prop.table()
+table(test$Tipo) %>% prop.table()
 
 #install.packages("caret")
-#library(caret)
+library(caret)
 
 # 3. Create response and feature data
-features <- setdiff(names(train), "Unido")
+features <- setdiff(names(train), "Tipo")
 x <- train[, features]
-y <- train$Unido
+y <- train$Tipo
 
 # 4. set up 10-fold cross validation procedure
 train_control <- trainControl(
   method = "cv", 
-  number = 10
+  number = 20
 )
 
 # 5. set up tuning grid
 search_grid <- expand.grid(
-  usekernel = c(TRUE, FALSE),
-  fL = 0:5,
+  usekernel = F,
+  fL = 1:5,
   adjust = seq(0, 5, by = 1)
 )
 
 # 6. train model
-nb.m2 <- train(
+nb.m2 <- caret::train(
   x = x,
   y = y,
   method = "nb",
@@ -303,7 +480,7 @@ plot(nb.m2)
 confusionMatrix(nb.m2)
 
 pred <- predict(nb.m2, newdata = test)
-confusionMatrix(pred, test$Unido)
+confusionMatrix(pred, test$Tipo)
 
 mean(nv1$Unido=="Si") # 0.6596544
 

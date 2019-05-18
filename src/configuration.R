@@ -10,6 +10,11 @@ if (!require(rsample)){
   library(rsample)
 }
 
+if (!require(Hmisc)){
+  install.packages('Hmisc')
+  library(Hmisc)
+}
+
 if (!require(ggplot2)){
   install.packages('ggplot2')
   library(ggplot2)
@@ -25,9 +30,9 @@ if (!require(ggalt)){
   library(ggalt)
 }
 
-if (!require(dplyr)){
-  install.packages('dplyr')
-  library(dplyr)
+if (!require(tidyverse)){
+  install.packages('tidyverse')
+  library(tidyverse)
 }
 
 if (!require(tidyr)){
@@ -173,19 +178,19 @@ loadFiles <- function(path, pattern = "*.csv", takeRandoms = TRUE){
     }
   }
   
-  df <- df[!is.na(df$C_PercentSequence), ]
-  df <- df[!is.na(df$CG_PercentPairs), ]
-  df$LoopPattern <- factor(df$LoopPattern)
-  df$N.1 <- factor(df$N.1)
-  df$N.2 <- factor(df$N.2)
-  df$N2 <- factor(df$N2)
-  df$N5 <- factor(df$N5)
-  df$N6 <- factor(df$N6)
-  df$N7 <- factor(df$N7)
-  df$N8 <- factor(df$N8)
-  df$TerminalPair <- factor(df$TerminalPair)
-  df$Additional5Seq <- factor(df$Additional5Seq)
-  df$Additional3Seq <- factor(df$Additional3Seq)
+  # df <- df[!is.na(df$C_PercentSequence), ]
+  # df <- df[!is.na(df$CG_PercentPairs), ]
+  # df$LoopPattern <- factor(df$LoopPattern)
+  # df$N.1 <- factor(df$N.1)
+  # df$N.2 <- factor(df$N.2)
+  # df$N2 <- factor(df$N2)
+  # df$N5 <- factor(df$N5)
+  # df$N6 <- factor(df$N6)
+  # df$N7 <- factor(df$N7)
+  # df$N8 <- factor(df$N8)
+  # df$TerminalPair <- factor(df$TerminalPair)
+  # df$Additional5Seq <- factor(df$Additional5Seq)
+  # df$Additional3Seq <- factor(df$Additional3Seq)
   
   #glimpse(df)
   remove(aux)
@@ -323,9 +328,13 @@ cor.GK.tau <- function(df){
 
 getCorPearson <- function(df) {
   
-  cor <- cor(dplyr::select_if(df[, 4:28], is.numeric), method = "pearson")
+  df <- dplyr::select_if(df, is.numeric)
+  cor <- rcorr(as.matrix(df,type = "pearson"))
   
-  pl1 <- ggcorrplot(cor, 
+  print(summary(cor))
+  print(cor)
+  
+  pl1 <- ggcorrplot(cor(df, method="pearson"), 
              lab = TRUE, 
              lab_size = 3, 
              method="square", 
@@ -340,12 +349,12 @@ getCorPearson <- function(df) {
   
 
   print(pl1)
-  
+  return(cor)
   
 }
 
 getCorTau <- function(df) {
-  corTauDF <- cor.GK.tau(df[df$Serie==1, 4:28])
+  corTauDF <- cor.GK.tau(select_if(df, negate(is.numeric)))
   
   pl2 <- ggcorrplot(corTauDF, 
                     lab = TRUE, 
