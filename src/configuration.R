@@ -1,92 +1,92 @@
 print("Cargando paquetes...")
 
-if (!require(psych)){
-  install.packages('psych')
-  library(psych)
-}
-
-if (!require(rsample)){
-  install.packages('rsample')
-  library(rsample)
-}
-
-if (!require(Hmisc)){
-  install.packages('Hmisc')
-  library(Hmisc)
-}
-
-if (!require(ggplot2)){
-  install.packages('ggplot2')
-  library(ggplot2)
-}
-
-if (!require(RVAideMemoire)){
-  install.packages('RVAideMemoire')
-  library(RVAideMemoire)
-}
-
-if (!require(ggalt)){
-  install.packages('ggalt')
-  library(ggalt)
-}
-
-if (!require(tidyverse)){
-  install.packages('tidyverse')
-  library(tidyverse)
-}
-
-if (!require(tidyr)){
-  install.packages('tidyr')
-  library(tidyr)
-}
-
-if (!require(ggcorrplot)){
-  install.packages('ggcorrplot')
-  library(ggcorrplot)
-}
-
-if (!require(stringr)){
-  install.packages('stringr')
-  library(stringr)
-}
-if (!require(DescTools)){
-  install.packages('DescTools')
-  library(DescTools)
-}
-if (!require(readxl)){
-  install.packages('readxl')
-  library(readxl)
-}
-
-if (!require(beeswarm)){
-  install.packages('beeswarm')
-  library(beeswarm)
-}
-
-#if (!require(devtools)){
-#  install.packages('devtools')
-#  library(devtools)
-#}
-
-if (!require(JLutils)){
-  install_github("larmarange/JLutils")
-  library(JLutils)
-}
-
-if (!require(reshape2)){
-  install.packages('reshape2')
-  library(reshape2)
-}
-
-if (!require(ggpubr)){
-  install.packages('ggpubr')
-  library(ggpubr)
-}
-
-if (!require(e1071)){
-  install.packages('e1071')
-  library(e1071)
-}
+# if (!require(psych)){
+#   install.packages('psych')
+#   library(psych)
+# }
+# 
+# if (!require(rsample)){
+#   install.packages('rsample')
+#   library(rsample)
+# }
+# 
+# if (!require(Hmisc)){
+#   install.packages('Hmisc')
+#   library(Hmisc)
+# }
+# 
+# if (!require(ggplot2)){
+#   install.packages('ggplot2')
+#   library(ggplot2)
+# }
+# 
+# if (!require(RVAideMemoire)){
+#   install.packages('RVAideMemoire')
+#   library(RVAideMemoire)
+# }
+# 
+# if (!require(ggalt)){
+#   install.packages('ggalt')
+#   library(ggalt)
+# }
+# 
+# if (!require(tidyverse)){
+#   install.packages('tidyverse')
+#   library(tidyverse)
+# }
+# 
+# if (!require(tidyr)){
+#   install.packages('tidyr')
+#   library(tidyr)
+# }
+# 
+# if (!require(ggcorrplot)){
+#   install.packages('ggcorrplot')
+#   library(ggcorrplot)
+# }
+# 
+# if (!require(stringr)){
+#   install.packages('stringr')
+#   library(stringr)
+# }
+# if (!require(DescTools)){
+#   install.packages('DescTools')
+#   library(DescTools)
+# }
+# if (!require(readxl)){
+#   install.packages('readxl')
+#   library(readxl)
+# }
+# 
+# if (!require(beeswarm)){
+#   install.packages('beeswarm')
+#   library(beeswarm)
+# }
+# 
+# #if (!require(devtools)){
+# #  install.packages('devtools')
+# #  library(devtools)
+# #}
+# 
+# if (!require(JLutils)){
+#   install_github("larmarange/JLutils")
+#   library(JLutils)
+# }
+# 
+# if (!require(reshape2)){
+#   install.packages('reshape2')
+#   library(reshape2)
+# }
+# 
+# if (!require(ggpubr)){
+#   install.packages('ggpubr')
+#   library(ggpubr)
+# }
+# 
+# if (!require(e1071)){
+#   install.packages('e1071')
+#   library(e1071)
+# }
 
 #cluster
 #vcd
@@ -96,52 +96,10 @@ if (!require(e1071)){
 ###############################################################################
 print("Cargando funciones...")
 
-############################### Inference
-analizarVariable <- function(original, varX, varY, exito = "Unido", n = 100){
-  
-  if (!require(infer)){
-    install.packages('infer')
-    library(infer)
-  }
-  
-  i_x <- grep(paste("^",varX,"$", sep=""), colnames(df))
-  i_y <- grep(paste("^",varY,"$", sep=""), colnames(df))
-  
-  if(!is.numeric(original[, i_x])){
-    print("El valor no es numerico")
-    return(NULL)
-  }
-  
-  # Perform 1000 permutations
-  data_perm <- original %>%
-    # Specify fórmula, con "Unido" como éxito
-    specify(varY ~ varX, success = exito) %>%
-    # Hipotesis nula de independencia
-    hypothesize(null="independence") %>% 
-    # Generar 1000 repeticiones (por permutacion)
-    generate(reps = 1000, type = "permute") %>% 
-    # Calculate the difference in proportions (male then female)
-    calculate(stat="diff in props") #, order = c("male", "female"))
-  
-  # plot1
-  # Density plot of 1000 permuted differences in proportions
-  plot1 <- ggplot(data_perm, aes(x = stat)) + 
-    geom_density()
-  
-  # plot2
-  plot2 <- # Plot permuted differences, diff_perm
-    ggplot(data_perm, aes(x = diff_perm)) + 
-    # Add a density layer
-    geom_density() +
-    # Add a vline layer with intercept diff_orig
-    geom_vline(aes(xintercept = diff_orig), color = "red")
-  
-}
 
-#########################################
+# Carga de archivos en dos tandas (Original vs Random)
+#######################################
 
-# 1. Carga de archivos en dos tandas (Original vs Random)
-###############################################################################
 loadFiles <- function(path, pattern = "*.csv", takeRandoms = TRUE){
   temp <- list.files(path = path, pattern = pattern)
   
@@ -177,28 +135,15 @@ loadFiles <- function(path, pattern = "*.csv", takeRandoms = TRUE){
       }
     }
   }
-  
-  # df <- df[!is.na(df$C_PercentSequence), ]
-  # df <- df[!is.na(df$CG_PercentPairs), ]
-  # df$LoopPattern <- factor(df$LoopPattern)
-  # df$N.1 <- factor(df$N.1)
-  # df$N.2 <- factor(df$N.2)
-  # df$N2 <- factor(df$N2)
-  # df$N5 <- factor(df$N5)
-  # df$N6 <- factor(df$N6)
-  # df$N7 <- factor(df$N7)
-  # df$N8 <- factor(df$N8)
-  # df$TerminalPair <- factor(df$TerminalPair)
-  # df$Additional5Seq <- factor(df$Additional5Seq)
-  # df$Additional3Seq <- factor(df$Additional3Seq)
-  
-  #glimpse(df)
+
   remove(aux)
   return(df)
 }
 
-# 2. Formato de los datos para Ensembl
-###############################################################################
+
+# Formato de los datos para Ensembl
+#######################################
+
 formatEnsembl <- function(df, factorizeAll=TRUE){
   df$Column4 <- NULL
   df$Column6 <- NULL
@@ -219,7 +164,6 @@ formatEnsembl <- function(df, factorizeAll=TRUE){
   names(df)[names(df) == 'Column3'] <- 'GenSymbol'
   names(df)[names(df) == 'Column5'] <- 'Chromosome'
   df$Chromosome <- factor(df$Chromosome)
-  #df$Serie <- factor(df$Serie)
   
   if(factorizeAll){
     df$U_PercentSequence <- cut(df$U_PercentSequence, seq(0,1,.25), include.lowest = TRUE)
@@ -237,14 +181,13 @@ formatEnsembl <- function(df, factorizeAll=TRUE){
     df$Pairments <- cut(df$Pairments, seq(4,15,2), include.lowest = TRUE)
     df$WooblePairs <- cut(df$WooblePairs, seq(0,6,1), include.lowest = TRUE)
   }
-  
-  #glimpse(df)
-  
   return(df)
 }
 
-# 3. Goodman and Kruskal Tau Measure
-###############################################################################
+
+# Goodman and Kruskal Tau Measure
+#######################################
+
 # (https://www.r-bloggers.com/measuring-associations-between-non-numeric-variables/)
 # La tau de Goodman-Kruskal mide la asociación para las tabulaciones cruzadas de 
 # las variables de niveles nominales.
@@ -262,6 +205,7 @@ formatEnsembl <- function(df, factorizeAll=TRUE){
 # marginal o condicional.
 # La característica mas importante, y que otorga una asimetría al comparar X-Y con
 # Y-X, es que cuantifica la medida en que la variable X es útil para predecir Y.
+
 GKtau <- function(x,y, debug=FALSE){
   
   #  First, compute the IxJ contingency table between x and y
@@ -308,8 +252,10 @@ GKtau <- function(x,y, debug=FALSE){
   tau
 }
 
-# 4. GK Tau Correlation table
-###############################################################################
+
+# GK Tau Correlation table
+#######################################
+
 cor.GK.tau <- function(df){
   x <- matrix(nrow = ncol(df), ncol=ncol(df))
   
@@ -325,6 +271,10 @@ cor.GK.tau <- function(df){
   x <- round(x, 2)
   return(x)
 }
+
+
+# Pearson correlation
+#######################################
 
 getCorPearson <- function(df) {
   
@@ -353,6 +303,9 @@ getCorPearson <- function(df) {
   
 }
 
+# Goodman-Kruskal Tau correlation
+#######################################
+
 getCorTau <- function(df) {
   corTauDF <- cor.GK.tau(select_if(df, negate(is.numeric)))
   
@@ -372,8 +325,10 @@ getCorTau <- function(df) {
   print(pl2)
 }
 
-# 5. Analisis de la distribucion de todas las bases
-###############################################################################
+
+# Analisis de la distribucion de todas las bases
+#######################################
+
 plotBaseDistribution <- function(df){
 all.bases <- df %>% dplyr::select(Serie, "-2"=N.2, "-1"=N.1, 
                                     "1"=N2, "4"=N5, "5"=N6,
@@ -396,11 +351,17 @@ pl1 <- ggplot(all.bases, aes(x=Posicion, fill= Base)) +
                                       size = 3, fontface=3) +
   ylab("Proporción") + coord_flip() +
   ggtitle("Bases variables N en el motivo consenso SRE",
-          subtitle="Posiciones NNCNGGN[0..4]. del stem loop. La base C es la posición 0.") + scale_fill_brewer(palette = "Pastel2") +
+          subtitle="Posiciones NNCNGGN[0..4]. del stem loop. La base C es la posición 0.") + 
+  scale_fill_brewer(palette = "Pastel2") +
     theme_dark()
 
   return(pl1)
 }
+
+
+
+# Obtener archivo de la carpeta listas
+#######################################
 
 obtenerLista <- function(name){
   aux.df <- read.table(paste("./data/listas/", name, ".txt", sep=""), header=TRUE)
