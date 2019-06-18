@@ -22,7 +22,6 @@ if (!require(stringr)){
   library(stringr)
 }
 
-
 ###############################################################################
 # 2. Functions and datatypes
 ###############################################################################
@@ -96,10 +95,10 @@ getNCBIRefSeq <- function(lst, prefix, prmType = "accession") {
 ###############################################################################
 
 lst <- c("", "", "")
-lst <- read.table("./data/yeast_she.txt", header = T)
+lst <- read.table("./data/mouse_nizou.txt", header = T)
 
 # Get transcripts (NM_x code)
 res <- getNCBIRefSeq(lst, prefix = refSeq[7])
 
 print(res)
-write(res,"./data/yeast_she.lst")
+write(res,"./data/mouse_nizou.lst")
