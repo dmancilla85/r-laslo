@@ -1,6 +1,6 @@
 # Cargar framework
 source("./src/configuration.R")
-
+library(dplyr)
 
 ###############################################################################
 # Carga y limpieza de datos
@@ -16,39 +16,56 @@ fly.non_bound <- read.csv("./data/stem15/fly_non_bound.csv",
                           dec =",", stringsAsFactors = TRUE)
 
 # First random file
-fly.random <- read.csv("./data/stem15/fly_bound_rnd1.csv",
-                          sep =";", 
+fly.random <- read.csv("./data/stem15/fly_bound_rnd.csv",
+                          sep =";",
                           dec =",", stringsAsFactors = TRUE)
 # Second random file
-fly.random <- rbind(fly.random, 
-                    read.csv("./data/stem15/fly_bound_rnd1.csv",
-                              sep =";", 
-                              dec =",", stringsAsFactors = TRUE))
+# fly.random <- rbind(fly.random, 
+#                     read.csv("./data/stem15/fly_bound_rnd1.csv",
+#                               sep =";", 
+#                               dec =",", stringsAsFactors = TRUE))
 
 
 # Eliminar variables innecesarias
 fly.non_bound$Tipo <- "No unidos" 
-fly.non_bound <- formatEnsembl(fly.non_bound, FALSE)
+#fly.non_bound <- formatEnsembl(fly.non_bound, FALSE)
 fly.bound$Tipo <- "Unidos"
-fly.bound <- formatEnsembl(fly.bound, FALSE)
-fly.non_bound$GenID <- as.character(fly.non_bound$GenID)
-fly.random$GenID <- as.character(fly.random$GenID)
-fly.bound$GenID <- as.character(fly.bound$GenID)
+#fly.bound <- formatEnsembl(fly.bound, FALSE)
+fly.non_bound$Gen <- as.character(fly.non_bound$Gen)
+fly.random$Column3 <- as.character(fly.random$Column3)
+fly.bound$Gen <- as.character(fly.bound$Gen)
 
 
 # add random
 fly.random$Tipo <- "Random"
-fly.random <- formatEnsembl(fly.random, FALSE)
+#fly.random <- formatEnsembl(fly.random, FALSE)
 
 # check intersections
-fly.bound %>% inner_join(fly.non_bound, by=c("GenID"))
+fly.bound %>% inner_join(fly.non_bound, by=c("Gen"))
 
 glimpse(fly.bound)
 glimpse(fly.non_bound)
 glimpse(fly.random)
 
-fly <- rbind(fly.bound, fly.non_bound)
-fly <- rbind(fly, fly.random)
+# igualar datasets
+fly.bound$GeneSynonym <- NULL
+fly.bound$Note <- NULL
+fly.bound$AccessionID <- NULL
+fly.non_bound$GeneSynonym <- NULL
+fly.non_bound$Note <- NULL
+fly.non_bound$AccessionID <- NULL
+
+fly_gb <- rbind(fly.bound, fly.non_bound)
+
+fly.random$Gen <- fly.random$Column3
+fly.random$Column1 <- NULL
+fly.random$Column2 <- NULL
+fly.random$Column3 <- NULL
+fly.random$Column4 <- NULL
+fly.random$Column5 <- NULL
+fly.random$Column6 <- NULL
+
+fly <- rbind(select(fly_gb, -CDS_Start, -CDS_End, -Location), fly.random)
 
 # Determinando niveles
 fly$Tipo <- factor(fly$Tipo, levels=c("Unidos", "No unidos", "Random"))
@@ -65,14 +82,15 @@ if(!require(gridExtra)){
 
 # Hay correlaciones??
 cfly <- fly.bound %>% 
-  select(-Tipo,-GenID, -TranscriptoID,-GenSymbol, -Loop, -SequenceLength,
-         -TerminalPair,
-         -GU_PercentPairs,-AU_PercentPairs, -A_PercentSequence) 
+  select(-Tipo,-Gen, -Location, -Loop, -SequenceLength,
+         -TerminalPair, -AdditionalSeqMatches, -EndsAt,-CDS_Start,-CDS_End,-StartsAt,-StemLoopSequence,
+         -GU_PercentPairs,-AU_PercentPairs, -A_PercentSequence, -Sense, -AdditionalSeqPositions,
+         -PredictedStructure,-ViennaBracketStr,-LoopPattern) 
 
 cfly %>% getCorPearson()
 cfly %>% getCorTau()
 
-fly$id <- paste(fly$GenSymbol, fly$N.2,fly$N.1, fly$Loop) 
+fly$id <- fly$Gen #paste(fly$Gen, fly$N.2,fly$N.1, fly$Loop) 
 
 
 #######################################
@@ -214,6 +232,8 @@ chromo <- fly %>% filter(Tipo!="Random") %>%
 
 
 # LoopPattern 
+#source("https://install-github.me/larmarange/JLutils")
+
 patt <- fly %>%
   ggplot(aes(fill=LoopPattern, x=1)) +
   geom_bar(position="fill", color="darkgrey", ) + coord_polar(theta="y") +
@@ -247,7 +267,7 @@ pairs <- fly %>% ggplot(aes(Tipo,fill=TerminalPair)) +
   stat_stack_labels() +
   scale_fill_manual(values = wes_palette(6, name = "Darjeeling1", type = "continuous"))
 
-grid.arrange(chromo, pairs, patt)
+grid.arrange(pairs, patt)
 
 
 #######################################
@@ -265,9 +285,9 @@ fly %>%
   labs(fill="Base") +
   ggtitle("Frecuencia de bases en cada posición variable (N) del loop",
           subtitle="Sobre todos los stem-loops hallados en los transcriptos.") +
-  geom_text(stat = "fill_labels", fontface="bold",
+  geom_text(stat = "fill_labels", #fontface="bold",
             position = position_dodge(width = .8), size=3.2, 
-            check_overlap = TRUE, color="orangered2") +
+            check_overlap = TRUE, color="red") +
   facet_grid(Tipo ~ metric) +
   theme(axis.title = element_blank(),
         axis.ticks = element_blank(),
@@ -466,7 +486,7 @@ chisq$p.value < 0.05
 ###############################################################################
 
 if(!require(carets)){
-  install.packages("carets")
+  install.packages('carets', dependencies=TRUE, repos='http://cran.rstudio.com/')
   library(carets)
 }
 
@@ -476,11 +496,15 @@ if(!require(pROC)){
 }
 
 # 1. Seleccionar columnas
-nv1 <- fly %>% select(-GenID, -TranscriptoID,-GenSymbol, -Loop, -SequenceLength,
+nv1 <- fly_gb %>% select(-Gen, -Loop, -SequenceLength,
                       -TerminalPair,
-                      -GU_PercentPairs,-AU_PercentPairs, -A_PercentSequence) %>%
-  filter(Tipo != "Random") 
+                      -GU_PercentPairs,-AU_PercentPairs, -A_PercentSequence,
+                      -AdditionalSeqMatches, -AdditionalSeqPositions, -Sense,
+                      -EndsAt, -StartsAt,-PredictedStructure,-ViennaBracketStr,
+                      -StemLoopSequence,-CDS_Start,-CDS_End)
 nv1$Tipo <- factor(nv1$Tipo)
+
+glimpse(nv1)
 
 # 2. Separar sets
 set.seed(123)
@@ -533,9 +557,9 @@ confusionMatrix(nb.m2)
 pred <- predict(nb.m2, newdata = test)
 confusionMatrix(pred, test$Tipo)
 
-mean(nv1$Unido=="Si") # 0.6596544
+mean(nv1$Tipo=="Unidos") # 0.6596544
 
-nv1$Serie_prob <- predict(nb.m2, nv1, type="prob")
+predict(nb.m2, nv1, type="prob")
 nv1$Serie_pred <- ifelse(nv1$Serie_prob > 0.6594737, 1, 0)
 
 ROC <- roc(nv1$Unido, nv1$Serie_prob$Si)

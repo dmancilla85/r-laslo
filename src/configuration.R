@@ -1,92 +1,92 @@
 print("Cargando paquetes...")
 
-# if (!require(psych)){
-#   install.packages('psych')
-#   library(psych)
-# }
-# 
-# if (!require(rsample)){
-#   install.packages('rsample')
-#   library(rsample)
-# }
-# 
-# if (!require(Hmisc)){
-#   install.packages('Hmisc')
-#   library(Hmisc)
-# }
-# 
-# if (!require(ggplot2)){
-#   install.packages('ggplot2')
-#   library(ggplot2)
-# }
-# 
-# if (!require(RVAideMemoire)){
-#   install.packages('RVAideMemoire')
-#   library(RVAideMemoire)
-# }
-# 
-# if (!require(ggalt)){
-#   install.packages('ggalt')
-#   library(ggalt)
-# }
-# 
-# if (!require(tidyverse)){
-#   install.packages('tidyverse')
-#   library(tidyverse)
-# }
-# 
-# if (!require(tidyr)){
-#   install.packages('tidyr')
-#   library(tidyr)
-# }
-# 
-# if (!require(ggcorrplot)){
-#   install.packages('ggcorrplot')
-#   library(ggcorrplot)
-# }
-# 
-# if (!require(stringr)){
-#   install.packages('stringr')
-#   library(stringr)
-# }
-# if (!require(DescTools)){
-#   install.packages('DescTools')
-#   library(DescTools)
-# }
-# if (!require(readxl)){
-#   install.packages('readxl')
-#   library(readxl)
-# }
-# 
-# if (!require(beeswarm)){
-#   install.packages('beeswarm')
-#   library(beeswarm)
-# }
-# 
-# #if (!require(devtools)){
-# #  install.packages('devtools')
-# #  library(devtools)
-# #}
-# 
-# if (!require(JLutils)){
-#   install_github("larmarange/JLutils")
-#   library(JLutils)
-# }
-# 
-# if (!require(reshape2)){
-#   install.packages('reshape2')
-#   library(reshape2)
-# }
-# 
-# if (!require(ggpubr)){
-#   install.packages('ggpubr')
-#   library(ggpubr)
-# }
-# 
-# if (!require(e1071)){
-#   install.packages('e1071')
-#   library(e1071)
-# }
+if (!require(psych)){
+  install.packages('psych')
+  library(psych)
+}
+
+if (!require(rsample)){
+  install.packages('rsample')
+  library(rsample)
+}
+
+if (!require(Hmisc)){
+  install.packages('Hmisc')
+  library(Hmisc)
+}
+
+if (!require(ggplot2)){
+  install.packages('ggplot2')
+  library(ggplot2)
+}
+
+if (!require(RVAideMemoire)){
+  install.packages('RVAideMemoire')
+  library(RVAideMemoire)
+}
+
+if (!require(ggalt)){
+  install.packages('ggalt')
+  library(ggalt)
+}
+
+if (!require(tidyverse)){
+  install.packages('tidyverse')
+  library(tidyverse)
+}
+
+if (!require(tidyr)){
+  install.packages('tidyr')
+  library(tidyr)
+}
+
+if (!require(ggcorrplot)){
+  install.packages('ggcorrplot')
+  library(ggcorrplot)
+}
+
+if (!require(stringr)){
+  install.packages('stringr')
+  library(stringr)
+}
+if (!require(DescTools)){
+  install.packages('DescTools')
+  library(DescTools)
+}
+if (!require(readxl)){
+  install.packages('readxl')
+  library(readxl)
+}
+
+if (!require(beeswarm)){
+  install.packages('beeswarm')
+  library(beeswarm)
+}
+
+if (!require(devtools)){
+  install.packages('devtools')
+  library(devtools)
+}
+
+if (!require(JLutils)){
+  install_github("larmarange/JLutils")
+  library(JLutils)
+}
+
+if (!require(reshape2)){
+  install.packages('reshape2')
+  library(reshape2)
+}
+
+if (!require(ggpubr)){
+  install.packages('ggpubr')
+  library(ggpubr)
+}
+
+if (!require(e1071)){
+  install.packages('e1071')
+  library(e1071)
+}
 
 #cluster
 #vcd
