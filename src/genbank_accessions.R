@@ -96,11 +96,12 @@ getNCBIRefSeq <- function(lst, prefix, prmType = "accession") {
         res <- aux %>% unique()
       } else {
         aux <- aux %>% unique()
+        print(paste("Fila:",i,"Cont:",aux))
         res <- c(res, aux)
       }
     }
     # pause between API requests
-    Sys.sleep(5)
+    Sys.sleep(8)
   }
   
   print("Finished.")
@@ -115,10 +116,10 @@ getNCBIRefSeq <- function(lst, prefix, prmType = "accession") {
 ###########################################################
 
 lst <- c("", "", "")
-lst <- read.table("./data/fly_bound.txt", header = T)
+lst <- read.table("./data/fly_repressed.txt", header = T)
 
 # Get transcripts (NM_x code)
 res <- getNCBIRefSeq(lst, prefix = refSeq[7])
 
 print(res)
-write(res, "./data/fly_bound.lst")
+write(res, "./data/fly_repressed.lst")
