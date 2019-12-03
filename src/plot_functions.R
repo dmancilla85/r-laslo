@@ -65,7 +65,7 @@ getCorTau <- function(df) {
 featuresOfThePlot <- function(df) {
   # Plot by pairs
   pairs <- df %>%  filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, Pairments, id) %>%
+    distinct(Tipo, LoopPattern, Pairments, Gen) %>%
     group_by(Tipo, LoopPattern, Pairments) %>%
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n)) %>%
@@ -89,7 +89,7 @@ featuresOfThePlot <- function(df) {
   
   # Plot by wooble
   wooble <- df %>% filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, WooblePairs, id) %>%
+    distinct(Tipo, LoopPattern, WooblePairs, Gen) %>%
     group_by(Tipo, LoopPattern, WooblePairs) %>%
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n)) %>%
@@ -113,7 +113,7 @@ featuresOfThePlot <- function(df) {
   
   # Plot by bulges
   bulges <- df %>% filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, Bulges, id) %>%
+    distinct(Tipo, LoopPattern, Bulges, Gen) %>%
     group_by(Tipo, LoopPattern, Bulges) %>%
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n)) %>%
@@ -137,7 +137,7 @@ featuresOfThePlot <- function(df) {
   
   # Plot by internal loops
   internals <- df %>% filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, InternalLoops, id) %>%
+    distinct(Tipo, LoopPattern, InternalLoops, Gen) %>%
     group_by(Tipo, LoopPattern, InternalLoops) %>%
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n)) %>%
@@ -179,7 +179,7 @@ featuresOfThePlot <- function(df) {
 ###########################################################
 geneHitsByPattern <- function(df) {
   n1 <- df %>%  filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, N.1, id) %>%
+    distinct(Tipo, LoopPattern, N.1, Gen) %>%
     group_by(Tipo, LoopPattern, N.1) %>%
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n)) %>%
@@ -202,12 +202,12 @@ geneHitsByPattern <- function(df) {
     )
   
   n2 <- df %>% filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, N2, id) %>%
-    group_by(Tipo, LoopPattern, N2) %>%
+    distinct(Tipo, LoopPattern, N1, Gen) %>%
+    group_by(Tipo, LoopPattern, N1) %>%
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n)) %>%
     ggplot(aes(
-      x = N2,
+      x = N1,
       y = freq * 100,
       group = Tipo,
       color = Tipo
@@ -241,14 +241,14 @@ geneHitsByPattern <- function(df) {
 ###########################################################
 chromoPattAndPairs <- function(df) {
   # Chromosome
-  chromo <- df %>% filter(Tipo != "Random") %>%
-    ggplot(aes(x = Chromosome, fill = Tipo)) +
+  chromo <- df %>% #filter(Tipo != "Random") %>%
+    ggplot(aes(x = Location, fill = Tipo)) +
     geom_bar(color = "darkgray",
              position = "fill",
              width = 0.6) + theme_gray() +
     ggtitle("Distribución de los dos conjuntos en cromosomas",
             subtitle = "") + labs(fill = "Grupo") +
-    scale_fill_manual(values = c('blue2', 'brown3')) + xlab("Cromosoma") + ylab("Recuento") #480x480px
+    scale_fill_manual(values = c('blue2', 'brown3', 'orange')) + xlab("Posición") + ylab("Recuento") #480x480px
   
   
   # LoopPattern
@@ -303,7 +303,7 @@ chromoPattAndPairs <- function(df) {
     stat_stack_labels() +
     scale_fill_manual(values = wes_palette(6, name = "Rushmore1", type = "continuous"))
   
-  print(grid.arrange(pairs, patt))
+  print(grid.arrange(chromo, pairs, patt))
 }
 
 
@@ -312,7 +312,7 @@ plotNBases <- function(df) {
   windowsFonts(Calibri = windowsFont("TT Calibri Light"))
   
   myPlot <- df %>%
-    select (Tipo, N.2, N.1, N2, N5, N6, N7, N8) %>%
+    select (Tipo, N.2, N.1, N1, N5, N6, N7, N8) %>%
     gather(metric, value, -Tipo) %>%
     filter(value %in% c("A", "G", "C", "U")) %>%
     mutate(metric = str_replace_all(metric, "N.1", "N(-1)")) %>%
@@ -413,7 +413,7 @@ basePercentsPlot <- function(df) {
 ###########################################################
 pairsMFEPlot <- function(df) {
   # Percent Pairs in Stem
-  pairs2 <- df %>% filter(Tipo != "Random") %>%
+  pairs2 <- df %>% #filter(Tipo != "Random") %>%
     select(Tipo, AU_PercentPairs, CG_PercentPairs, GU_PercentPairs) %>%
     gather(metric, value, -Tipo) %>%
     mutate(metric = paste ("", str_replace(metric, "_PercentPairs", "")), value = value * 100) %>%
@@ -448,24 +448,24 @@ pairsMFEPlot <- function(df) {
     ggtitle("Energía libre en los stem-loops",
             subtitle = "Sobre el total de stem-loops en todos los transcriptos") +
     geom_vline(
-      data = filter(fly, Tipo == "Unidos"),
-      aes(xintercept = mean(RnaFoldMFE), group = Tipo),
+      data = filter(fly, Tipo == "unidos"),
+      aes(xintercept = mean(RnaFoldMFE),group = Tipo),
       color = "red",
       linetype = "dashed",
       show.legend = F,
       size = 1
     ) +
     geom_vline(
-      data = filter(fly, Tipo == "No unidos"),
-      aes(xintercept = mean(RnaFoldMFE), group = Tipo),
+      data = filter(fly, Tipo == "desestabilizado"),
+      aes(xintercept = mean(RnaFoldMFE),group = Tipo),
       color = "blue",
       linetype = "dashed",
       show.legend = F,
       size = 1
     ) +
     geom_vline(
-      data = filter(fly, Tipo == "Random"),
-      aes(xintercept = mean(RnaFoldMFE), group = Tipo),
+      data = filter(fly, Tipo == "reprimidos"),
+      aes(xintercept = mean(RnaFoldMFE),group = Tipo),
       color = "darkgreen",
       linetype = "dashed",
       show.legend = F,
@@ -516,6 +516,22 @@ relativePositionPlot <- function(df) {
       y = (-1) * RnaFoldMFE
     )) +
     geom_smooth(method = "loess") +
+    ggtitle("Variación de la estabilidad con respecto a la posición relativa en la secuencia") +
+    theme_pubr()
+  
+  print(myPlot)
+}
+
+###########################################################
+locationPlot <- function(df) {
+  # Cambiar por posicion UTR/CDS
+  myPlot <-
+    df %>% ggplot(aes(
+      color = Tipo,
+      x = Location,
+      y = (-1) * RnaFoldMFE
+    )) +
+    geom_boxplot()
     ggtitle("Variación de la estabilidad con respecto a la posición relativa en la secuencia") +
     theme_pubr()
   

@@ -96,11 +96,11 @@ getNCBIRefSeq <- function(lst, prefix, prmType = "accession") {
       xdoc <- genbank(lst$GeneID[i], type = prmType, disp = "data"),
       warning = function(err) {
         showError(err, "Warning")
-        print(xdoc)
+        #print(xdoc)
       },
       error = function(err) {
         showError(err)
-        print(xdoc)
+        #print(xdoc)
       }
     )
     
@@ -140,10 +140,11 @@ getNCBIRefSeq <- function(lst, prefix, prmType = "accession") {
 ###########################################################
 
 lst <- c("", "", "")
-lst <- read.table("./data/fly_repressed.txt", header = T)
+lst <- read.table("./data/yeast_she.txt", header = T)
 
 # Get transcripts (NM_x code)
 res <- getNCBIRefSeq(lst, prefix = refSeq[7])
 
 print(res)
-write(res, "./data/fly_repressed.lst")
+write(res, "./data/yeast_she.lst")
+warnings()
