@@ -196,19 +196,21 @@ if (!require(pROC)) {
 # 1. Seleccionar columnas
 nv1 <- fly %>% select(
   -Gen,
+  -GeneSynonym,
   -Loop,
   -SequenceLength,
   -TerminalPair,
-  -AdditionalSeqMatches,
-  -AdditionalSeqPositions,
-  -Sense,
   -EndsAt,
   -StartsAt,
   -PredictedStructure,
   -ViennaBracketStr,
   -StemLoopSequence,
   -CDS_Start,
-  -CDS_End
+  -Note,
+  -AccessionID,
+  -CDS_End,
+  -fornaVisualization,
+  -RelativePosition
 )
 
 summary(nv1)

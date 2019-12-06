@@ -60,27 +60,65 @@ getCorTau <- function(df) {
   print(pl2)
 }
 
+## fix numbers
+fixFreq <- function(filtered, myFactor) {
+  df <- fixFreq2(filtered, myFactor, "CNGG")
+  df <- fixFreq2(df, myFactor, "CNGGN")
+  df <- fixFreq2(df, myFactor, "CNGGNN")
+  df <- fixFreq2(df, myFactor, "CNGGNNN")
+  df <- fixFreq2(df, myFactor, "CNGGNNNN")
+  return(df)
+}
+
+fixFreq2 <- function(filtered, myFactor, myPattern) {
+  sum1 <-
+    filtered[filtered$Tipo == myFactor &
+               filtered$LoopPattern == myPattern,]$n %>% sum()
+  
+  filtered[filtered$Tipo == myFactor &
+             filtered$LoopPattern == myPattern, ]$freq <-
+    filtered[filtered$Tipo == myFactor &
+               filtered$LoopPattern == myPattern, ]$n / sum1
+  
+  return(filtered)
+}
 
 ###########################################################
 featuresOfThePlot <- function(df) {
-  # Plot by pairs
-  pairs <- df %>%  filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, Pairments, Gen) %>%
+  df <- fly
+  filtered <- df %>%  filter(str_length(LoopPattern) <= 8) %>%
+    distinct(Tipo, LoopPattern, Pairments, Gen, StartsAt) %>%
     group_by(Tipo, LoopPattern, Pairments) %>%
     dplyr::summarise(n = n()) %>%
-    mutate(freq = n / sum(n)) %>%
+    mutate(freq = n / sum(n))
+  
+  limit <- 100
+  
+  filtered <- fixFreq(filtered, "desestabilizado")
+  filtered <- fixFreq(filtered, "reprimidos")
+  filtered <- fixFreq(filtered, "unidos")
+  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Random")
+  filtered$Tipo <- as.factor(filtered$Tipo)
+  #write.table(filtered, "test1.txt",sep="\t")
+  
+  # Plot by pairs
+  pairs <- filtered  %>%
     ggplot(aes(
       x = Pairments,
       y = freq * 100,
       group = Tipo,
       color = Tipo
     )) +
-    geom_line(linetype = "dashed") +
+    geom_point(aes(shape = Tipo), show.legend = T, alpha = 0.7) +
+    ylab("%") + #labs(color = "Listado") +
+    geom_line(linetype = "dashed",
+              show.legend = F,
+              alpha = 0.3) +
     xlab("Longitud del stem") +
-    scale_y_continuous(breaks = seq(0, 60, by = 10), limits = c(0, 60)) +
-    geom_point(aes(shape = Tipo), show.legend = F) +
-    ylab("%") + labs(color = "Listado") +
-    facet_grid( ~ LoopPattern) +
+    scale_y_continuous(breaks = seq(0, limit, by = 10),
+                       limits = c(0, limit)) +
+    facet_grid(~ LoopPattern) +
     theme(
       strip.background = element_blank(),
       strip.text = element_text(face = "bold"),
@@ -88,23 +126,35 @@ featuresOfThePlot <- function(df) {
     )
   
   # Plot by wooble
-  wooble <- df %>% filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, WooblePairs, Gen) %>%
+  filtered <- df %>% filter(str_length(LoopPattern) <= 8) %>%
+    distinct(Tipo, LoopPattern, WooblePairs, Gen, StartsAt) %>%
     group_by(Tipo, LoopPattern, WooblePairs) %>%
     dplyr::summarise(n = n()) %>%
-    mutate(freq = n / sum(n)) %>%
+    mutate(freq = n / sum(n))
+  
+  filtered <- fixFreq(filtered, "desestabilizado")
+  filtered <- fixFreq(filtered, "reprimidos")
+  filtered <- fixFreq(filtered, "unidos")
+  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Random")
+  
+  
+  wooble <- filtered %>%
     ggplot(aes(
       x = WooblePairs,
       y = freq * 100,
       group = Tipo,
       color = Tipo
     )) +
-    geom_line(linetype = "dashed", show.legend = F) +
+    geom_line(linetype = "dashed",
+              show.legend = F,
+              alpha = 0.3) +
     xlab("Apareamientos GU") +
-    geom_point(aes(shape = Tipo), show.legend = F) +
+    geom_point(aes(shape = Tipo), show.legend = F, alpha = 0.7) +
     ylab("%") + labs(color = "Listado") +
-    scale_y_continuous(breaks = seq(0, 60, by = 10), limits = c(0, 60)) +
-    facet_grid( ~ LoopPattern) +
+    scale_y_continuous(breaks = seq(0, limit, by = 10),
+                       limits = c(0, limit)) +
+    facet_grid(~ LoopPattern) +
     theme(
       strip.background = element_blank(),
       strip.text = element_text(face = "bold"),
@@ -112,23 +162,34 @@ featuresOfThePlot <- function(df) {
     )
   
   # Plot by bulges
-  bulges <- df %>% filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, Bulges, Gen) %>%
+  filtered <- df %>% filter(str_length(LoopPattern) <= 8) %>%
+    distinct(Tipo, LoopPattern, Bulges, Gen, StartsAt) %>%
     group_by(Tipo, LoopPattern, Bulges) %>%
     dplyr::summarise(n = n()) %>%
-    mutate(freq = n / sum(n)) %>%
+    mutate(freq = n / sum(n))
+  
+  filtered <- fixFreq(filtered, "desestabilizado")
+  filtered <- fixFreq(filtered, "reprimidos")
+  filtered <- fixFreq(filtered, "unidos")
+  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Random")
+  
+  bulges <- filtered %>%
     ggplot(aes(
       x = Bulges,
       y = freq * 100,
       group = Tipo,
       color = Tipo
     )) +
-    geom_line(linetype = "dashed", show.legend = F) +
+    geom_line(linetype = "dashed",
+              show.legend = F,
+              alpha = 0.3) +
     xlab("Bulges") +
-    geom_point(aes(shape = Tipo), show.legend = F) +
+    geom_point(aes(shape = Tipo), show.legend = F, alpha = 0.7) +
     ylab("%") + labs(color = "Listado") +
-    facet_grid( ~ LoopPattern) +
-    scale_y_continuous(breaks = seq(0, 60, by = 10), limits = c(0, 60)) +
+    facet_grid(~ LoopPattern) +
+    scale_y_continuous(breaks = seq(0, limit, by = 10),
+                       limits = c(0, limit)) +
     theme(
       strip.background = element_blank(),
       strip.text = element_text(face = "bold"),
@@ -136,23 +197,34 @@ featuresOfThePlot <- function(df) {
     )
   
   # Plot by internal loops
-  internals <- df %>% filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, InternalLoops, Gen) %>%
+  filtered <- df %>% filter(str_length(LoopPattern) <= 8) %>%
+    distinct(Tipo, LoopPattern, InternalLoops, Gen, StartsAt) %>%
     group_by(Tipo, LoopPattern, InternalLoops) %>%
     dplyr::summarise(n = n()) %>%
-    mutate(freq = n / sum(n)) %>%
+    mutate(freq = n / sum(n))
+  
+  filtered <- fixFreq(filtered, "desestabilizado")
+  filtered <- fixFreq(filtered, "reprimidos")
+  filtered <- fixFreq(filtered, "unidos")
+  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Random")
+  
+  internals <- filtered %>%
     ggplot(aes(
       x = InternalLoops,
       y = freq * 100,
       group = Tipo,
       color = Tipo
     )) +
-    geom_line(linetype = "dashed", show.legend = F) +
+    geom_line(linetype = "dashed",
+              show.legend = F,
+              alpha = 0.3) +
     xlab("Loops internos") +
-    geom_point(aes(shape = Tipo), show.legend = F) +
+    geom_point(aes(shape = Tipo), show.legend = F, alpha = 0.7) +
     ylab("%") + labs(color = "Listado") +
-    facet_grid( ~ LoopPattern) +
-    scale_y_continuous(breaks = seq(0, 60, by = 10), limits = c(0, 60)) +
+    facet_grid(~ LoopPattern) +
+    scale_y_continuous(breaks = seq(0, limit, by = 10),
+                       limits = c(0, limit)) +
     theme(
       strip.background = element_blank(),
       strip.text = element_text(face = "bold"),
@@ -167,7 +239,7 @@ featuresOfThePlot <- function(df) {
     internals,
     ncol = 1,
     top = text_grob(
-      "% Genes acertados por patrón del loop",
+      "% SRE detectados por cada gen",
       face = "bold",
       size = 13.5
     ),
@@ -178,46 +250,82 @@ featuresOfThePlot <- function(df) {
 
 ###########################################################
 geneHitsByPattern <- function(df) {
-  n1 <- df %>%  filter(str_length(LoopPattern) <= 8) %>%
+  limit <- 70
+  
+  filtered <- df %>%  filter(str_length(LoopPattern) <= 8) %>%
     distinct(Tipo, LoopPattern, N.1, Gen) %>%
     group_by(Tipo, LoopPattern, N.1) %>%
     dplyr::summarise(n = n()) %>%
-    mutate(freq = n / sum(n)) %>%
+    mutate(freq = n / sum(n))
+  
+  filtered <- fixFreq(filtered, "desestabilizado")
+  filtered <- fixFreq(filtered, "reprimidos")
+  filtered <- fixFreq(filtered, "unidos")
+  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Random")
+  
+  write.table(filtered, "test1.txt", sep = "\t")
+  
+  n1 <- filtered %>%
     ggplot(aes(
       x = N.1,
       y = freq * 100,
       group = Tipo,
       color = Tipo
     )) +
-    geom_line(linetype = "dashed") +
+    #geom_line(linetype = "dashed") +
     xlab("Base predecesora (N-1)") +
-    scale_y_continuous(breaks = seq(0, 60, by = 10), limits = c(0, 60)) +
-    geom_point(aes(shape = Tipo), show.legend = F) +
-    ylab("%") + labs(color = "Listado") +
-    facet_grid(~ LoopPattern) +
+    scale_y_continuous(breaks = seq(0, limit, by = 10),
+                       limits = c(0, limit)) +
+    geom_point(aes(size=Tipo),
+               alpha = 0.5,
+               show.legend = T) +
+    ylab("%") + #labs(color = "Listado") +
+    geom_segment(aes(
+      x = N.1,
+      xend = N.1,
+      y = 0,
+      yend = freq * 100
+    ), alpha = 0.5) +
+    facet_grid( ~ LoopPattern) +
     theme(
       strip.background = element_blank(),
       strip.text = element_text(face = "bold"),
       plot.background = element_rect(fill = "floralwhite")
     )
   
-  n2 <- df %>% filter(str_length(LoopPattern) <= 8) %>%
+  filtered <- df %>% filter(str_length(LoopPattern) <= 8) %>%
     distinct(Tipo, LoopPattern, N1, Gen) %>%
     group_by(Tipo, LoopPattern, N1) %>%
     dplyr::summarise(n = n()) %>%
-    mutate(freq = n / sum(n)) %>%
+    mutate(freq = n / sum(n))
+  
+  filtered <- fixFreq(filtered, "desestabilizado")
+  filtered <- fixFreq(filtered, "reprimidos")
+  filtered <- fixFreq(filtered, "unidos")
+  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Random")
+  
+  n2 <- filtered %>%
     ggplot(aes(
       x = N1,
       y = freq * 100,
       group = Tipo,
       color = Tipo
     )) +
-    geom_line(linetype = "dashed", show.legend = F) +
+    #geom_line(linetype = "dashed", show.legend = F) +
     xlab("Base N2") +
-    geom_point(aes(shape = Tipo), show.legend = F) +
-    ylab("%") + labs(color = "Listado") +
-    facet_grid(~ LoopPattern) +
-    scale_y_continuous(breaks = seq(0, 60, by = 10), limits = c(0, 60)) +
+    geom_point(aes(size = Tipo), alpha = 0.5, show.legend = T) +
+    geom_segment(aes(
+      x = N1,
+      xend = N1,
+      y = 0,
+      yend = freq * 100
+    ), alpha = 0.5) +
+    ylab("%") + #labs(color = "Listado") +
+    facet_grid( ~ LoopPattern) +
+    scale_y_continuous(breaks = seq(0, limit, by = 10),
+                       limits = c(0, limit)) +
     theme(
       strip.background = element_blank(),
       strip.text = element_text(face = "bold"),
@@ -239,18 +347,52 @@ geneHitsByPattern <- function(df) {
 
 
 ###########################################################
-chromoPattAndPairs <- function(df) {
+locationAndPairs <- function(df) {
   # Chromosome
   chromo <- df %>% #filter(Tipo != "Random") %>%
-    ggplot(aes(x = Location, fill = Tipo)) +
+    ggplot(aes(x = Tipo, fill = Location)) +
     geom_bar(color = "darkgray",
-             position = "fill",
-             width = 0.6) + theme_gray() +
-    ggtitle("Distribución de los dos conjuntos en cromosomas",
-            subtitle = "") + labs(fill = "Grupo") +
-    scale_fill_manual(values = c('blue2', 'brown3', 'orange')) + xlab("Posición") + ylab("Recuento") #480x480px
+             position = "fill") + theme_gray() +
+    ggtitle("Localización de los stems encontrados",
+            subtitle = "") + labs(fill = "Location") +
+    geom_text(
+      stat = "fill_labels",
+      size = 3,
+      color = "white",
+      fontface = "bold"
+    ) +
+    scale_fill_manual(values = c('blue2', 'brown3', 'orange', "yellow", "green")) +
+    xlab("Posición") + ylab("Recuento") #480x480px
   
   
+  # TerminalPair
+  pairs <- df %>%
+    ggplot(aes(x = Tipo, fill = TerminalPair)) +
+    geom_bar(position = "fill",
+             color = "darkgray") + labs(fill = "Par de cierre") +
+    ggtitle("Tipo de apareamiento de cierre 3' a 5'",
+            subtitle = "") +
+    theme(
+      axis.text.y = element_blank(),
+      axis.title.y = element_blank(),
+      axis.ticks = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.background = element_rect(fill = "#DCDCDC"),
+      panel.border = element_rect(colour = "darkgrey", fill = NA)
+    ) + xlab("Grupo") +
+    geom_text(
+      stat = "fill_labels",
+      size = 3,
+      color = "white",
+      fontface = "bold"
+    ) + #stat_stack_labels() +
+    scale_fill_manual(values = wes_palette(6, name = "Rushmore1", type = "continuous"))
+  
+  print(grid.arrange(chromo, pairs))
+}
+
+plotLoopPatterns <- function(df) {
   # LoopPattern
   
   patt <- df %>%
@@ -265,9 +407,9 @@ chromoPattAndPairs <- function(df) {
       size = 3.5,
       check_overlap = TRUE,
       
-    ) + labs(fill = "Patrón del loop") +
-    facet_wrap(~ Tipo) + ylab("") +
-    ggtitle("Secuencias consenso buscadas en los bucles",
+    ) + labs(fill = "Secuencia") +
+    facet_wrap( ~ Tipo, nrow=1) + ylab("") +
+    ggtitle("Motivos buscados en el Loop",
             subtitle = "Sobre todos los stem-loops hallados en los transcriptos.") +
     theme(
       axis.text.x = element_blank(),
@@ -281,29 +423,12 @@ chromoPattAndPairs <- function(df) {
       strip.text = element_text(face = "bold"),
       legend.text = element_text(face = "bold")
     ) +
-    ylab("") + xlab("") +
-    scale_fill_manual(values = wes_palette(7, name = "BottleRocket1", type = "continuous"))
+    ylab("") + xlab("") #+
+    #scale_fill_manual(values = wes_palette(7, name = "BottleRocket1", type = "continuous"))
   
   # "#3B9AB2" "#78B7C5" "#EBCC2A" "#E1AF00" "#F21A00"
   
-  # TerminalPair
-  pairs <- df %>% ggplot(aes(Tipo, fill = TerminalPair)) +
-    geom_bar(stat = "count", width = 0.65) + labs(fill = "Par de cierre") +
-    ggtitle("Apareamientos de cierre del loop",
-            subtitle = "Sobre todos los stem-loops hallados en los transcriptos.") +
-    theme(
-      axis.text.y = element_blank(),
-      axis.title.y = element_blank(),
-      axis.ticks = element_blank(),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.background = element_rect(fill = "#DCDCDC"),
-      panel.border = element_rect(colour = "darkgrey", fill = NA)
-    ) + xlab("Grupo") +
-    stat_stack_labels() +
-    scale_fill_manual(values = wes_palette(6, name = "Rushmore1", type = "continuous"))
-  
-  print(grid.arrange(chromo, pairs, patt))
+  print(patt)
 }
 
 
@@ -351,18 +476,21 @@ plotNBases <- function(df) {
 
 ###########################################################
 wpbPlots <- function(df) {
-  myPlot <- df %>%
+  
+  filtered <- df %>%
     select(Tipo, WooblePairs, Bulges, InternalLoops) %>%
     gather(metric, value, -Tipo) %>%
     mutate(metric = str_replace_all(metric, "WooblePairs", "Pares GU")) %>%
-    mutate(metric = str_replace_all(metric, "InternalLoops", "Loops internos")) %>%
+    mutate(metric = str_replace_all(metric, "InternalLoops", "Loops internos"))
+  
+  myPlot <- filtered %>%
     ggplot(aes(x = value, fill = metric)) +
     geom_histogram(
       show.legend = F,
-      bins = 8,
+      bins = 9,
       color = "black",
-      lwd = 0.8
-    ) +
+      lwd = 0.8,
+      aes(y = stat(width*density),group=Tipo)) +
     labs(fill = "") +
     theme(
       panel.background = element_rect(fill = "azure"),
@@ -372,7 +500,9 @@ wpbPlots <- function(df) {
       strip.background = element_blank(),
       strip.text = element_text(face = "bold"),
       plot.background = element_rect(fill = "whitesmoke")
-    ) +
+    ) + 
+    scale_y_continuous(labels=percent_format()) +
+    scale_x_continuous(breaks = 0:9) +
     ggtitle("Propiedades de los stem-loops", subtitle = "") +
     xlab("Cantidad") + ylab("Stem-loops") +
     facet_grid(Tipo ~ metric) +
@@ -384,27 +514,33 @@ wpbPlots <- function(df) {
 
 ###########################################################
 basePercentsPlot <- function(df) {
-  myPlot <- df %>% filter(Tipo != "Random") %>%
+  
+  filtered <- df %>% filter(Tipo != "Random") %>%
     select(Tipo,
            A_PercentSequence,
            C_PercentSequence,
            G_PercentSequence,
            U_PercentSequence) %>%
     gather(metric, value, -Tipo) %>%
-    mutate(metric = paste ("", str_replace(metric, "_PercentSequence", "")), value = value * 100) %>%
-    ggplot(aes(x = value, fill = Tipo)) + ylab("Densidad") +
-    geom_histogram(
+    mutate(metric = paste ("", str_replace(metric, "_PercentSequence", "")), value = value * 100)
+  
+  #View(filtered)
+  
+  myPlot <- filtered %>%
+    ggplot(aes(x = value, fill = metric)) + ylab("Densidad") +
+    geom_density(
       aes(y = ..density..),
       position = "identity",
-      bins = 40,
-      alpha = 0.5,
+      #bins = 40,
+      alpha = 0.3,
       color = "black"
     ) +
     xlab("Ratio de cada nucleótido en la secuencia entera") +
-    facet_wrap( ~ metric, ncol = 2, nrow = 2) + theme_pubr() +
+    facet_wrap( ~ Tipo,nrow=1) + theme_pubr() +
     ggtitle("Composición de las secuencias cDNA",
             subtitle = "Sobre el total de bases en transcriptos") +
-    scale_fill_manual(values = wes_palette("Cavalcanti1"))
+    scale_fill_manual(values = wes_palette("Cavalcanti1")) +
+    scale_x_continuous(breaks=seq(1,50,by=10))
   
   print(myPlot)
 }
@@ -436,7 +572,7 @@ pairsMFEPlot <- function(df) {
     select(Tipo, RnaFoldMFE) %>%
     ggplot(aes(x = RnaFoldMFE, group = Tipo)) + ylab("Densidad") +
     geom_density(alpha = 1, size = 0.7) +
-    facet_wrap( ~ Tipo) +
+    facet_wrap(~ Tipo, nrow=1) +
     theme(strip.background = element_blank(),
           strip.text = element_text(face = "bold")) +
     scale_x_continuous(breaks = round(seq(
@@ -449,7 +585,7 @@ pairsMFEPlot <- function(df) {
             subtitle = "Sobre el total de stem-loops en todos los transcriptos") +
     geom_vline(
       data = filter(fly, Tipo == "unidos"),
-      aes(xintercept = mean(RnaFoldMFE),group = Tipo),
+      aes(xintercept = median(RnaFoldMFE), group = Tipo),
       color = "red",
       linetype = "dashed",
       show.legend = F,
@@ -457,7 +593,7 @@ pairsMFEPlot <- function(df) {
     ) +
     geom_vline(
       data = filter(fly, Tipo == "desestabilizado"),
-      aes(xintercept = mean(RnaFoldMFE),group = Tipo),
+      aes(xintercept = median(RnaFoldMFE), group = Tipo),
       color = "blue",
       linetype = "dashed",
       show.legend = F,
@@ -465,7 +601,23 @@ pairsMFEPlot <- function(df) {
     ) +
     geom_vline(
       data = filter(fly, Tipo == "reprimidos"),
-      aes(xintercept = mean(RnaFoldMFE),group = Tipo),
+      aes(xintercept = median(RnaFoldMFE), group = Tipo),
+      color = "darkgreen",
+      linetype = "dashed",
+      show.legend = F,
+      size = 1
+    )+
+    geom_vline(
+      data = filter(fly, Tipo == "no unidos"),
+      aes(xintercept = median(RnaFoldMFE), group = Tipo),
+      color = "darkgreen",
+      linetype = "dashed",
+      show.legend = F,
+      size = 1
+    )+
+    geom_vline(
+      data = filter(fly, Tipo == "Random"),
+      aes(xintercept = median(RnaFoldMFE), group = Tipo),
       color = "darkgreen",
       linetype = "dashed",
       show.legend = F,
@@ -483,7 +635,7 @@ purinePlot <- function(df) {
     select(Tipo, PurinePercentPairs) %>%
     ggplot(aes(x = PurinePercentPairs, group = Tipo)) + ylab("Densidad") +
     geom_density(alpha = 1, size = 1) +
-    facet_wrap( ~ Tipo) +
+    facet_wrap(~ Tipo) +
     xlab("Ratio de A-G en apareamientos de los stems") +
     theme_pubr() +
     theme(
@@ -527,12 +679,12 @@ locationPlot <- function(df) {
   # Cambiar por posicion UTR/CDS
   myPlot <-
     df %>% ggplot(aes(
-      color = Tipo,
-      x = Location,
+      fill = Location,
+      x = Tipo,
       y = (-1) * RnaFoldMFE
     )) +
     geom_boxplot()
-    ggtitle("Variación de la estabilidad con respecto a la posición relativa en la secuencia") +
+  ggtitle("Variación de la estabilidad con respecto a la posición relativa en la secuencia") +
     theme_pubr()
   
   print(myPlot)
