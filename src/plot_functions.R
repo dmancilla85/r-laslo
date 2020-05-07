@@ -85,22 +85,22 @@ fixFreq2 <- function(filtered, myFactor, myPattern) {
 
 ###########################################################
 featuresOfThePlot <- function(df) {
-  df <- fly
   filtered <- df %>%  filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, Pairments, Gen, StartsAt) %>%
+    distinct(Tipo, LoopPattern, Pairments, StemLoopSequence,Gen) %>%
     group_by(Tipo, LoopPattern, Pairments) %>%
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n))
   
-  limit <- 100
+  limit <- 85
   
-  filtered <- fixFreq(filtered, "desestabilizado")
-  filtered <- fixFreq(filtered, "reprimidos")
-  filtered <- fixFreq(filtered, "unidos")
-  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Unidos y silenciados")
+  filtered <- fixFreq(filtered, "No unidos y silenciados")
+  filtered <- fixFreq(filtered, "Unidos y no silenciados")
+  filtered <- fixFreq(filtered, "No unidos y no silenciados")
   filtered <- fixFreq(filtered, "Random")
   filtered$Tipo <- as.factor(filtered$Tipo)
   #write.table(filtered, "test1.txt",sep="\t")
+  #View(filtered)
   
   # Plot by pairs
   pairs <- filtered  %>%
@@ -110,7 +110,7 @@ featuresOfThePlot <- function(df) {
       group = Tipo,
       color = Tipo
     )) +
-    geom_point(aes(shape = Tipo), show.legend = T, alpha = 0.7) +
+    geom_point(aes(color = Tipo), show.legend = T, alpha = 0.7) +
     ylab("%") + #labs(color = "Listado") +
     geom_line(linetype = "dashed",
               show.legend = F,
@@ -132,10 +132,10 @@ featuresOfThePlot <- function(df) {
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n))
   
-  filtered <- fixFreq(filtered, "desestabilizado")
-  filtered <- fixFreq(filtered, "reprimidos")
-  filtered <- fixFreq(filtered, "unidos")
-  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Unidos y silenciados")
+  filtered <- fixFreq(filtered, "No unidos y silenciados")
+  filtered <- fixFreq(filtered, "Unidos y no silenciados")
+  filtered <- fixFreq(filtered, "No unidos y no silenciados")
   filtered <- fixFreq(filtered, "Random")
   
   
@@ -150,7 +150,7 @@ featuresOfThePlot <- function(df) {
               show.legend = F,
               alpha = 0.3) +
     xlab("Apareamientos GU") +
-    geom_point(aes(shape = Tipo), show.legend = F, alpha = 0.7) +
+    geom_point(aes(color = Tipo), show.legend = F, alpha = 0.7) +
     ylab("%") + labs(color = "Listado") +
     scale_y_continuous(breaks = seq(0, limit, by = 10),
                        limits = c(0, limit)) +
@@ -168,10 +168,10 @@ featuresOfThePlot <- function(df) {
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n))
   
-  filtered <- fixFreq(filtered, "desestabilizado")
-  filtered <- fixFreq(filtered, "reprimidos")
-  filtered <- fixFreq(filtered, "unidos")
-  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Unidos y silenciados")
+  filtered <- fixFreq(filtered, "No unidos y silenciados")
+  filtered <- fixFreq(filtered, "Unidos y no silenciados")
+  filtered <- fixFreq(filtered, "No unidos y no silenciados")
   filtered <- fixFreq(filtered, "Random")
   
   bulges <- filtered %>%
@@ -185,7 +185,7 @@ featuresOfThePlot <- function(df) {
               show.legend = F,
               alpha = 0.3) +
     xlab("Bulges") +
-    geom_point(aes(shape = Tipo), show.legend = F, alpha = 0.7) +
+    geom_point(aes(color = Tipo), show.legend = F, alpha = 0.7) +
     ylab("%") + labs(color = "Listado") +
     facet_grid(~ LoopPattern) +
     scale_y_continuous(breaks = seq(0, limit, by = 10),
@@ -203,10 +203,10 @@ featuresOfThePlot <- function(df) {
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n))
   
-  filtered <- fixFreq(filtered, "desestabilizado")
-  filtered <- fixFreq(filtered, "reprimidos")
-  filtered <- fixFreq(filtered, "unidos")
-  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Unidos y silenciados")
+  filtered <- fixFreq(filtered, "No unidos y silenciados")
+  filtered <- fixFreq(filtered, "Unidos y no silenciados")
+  filtered <- fixFreq(filtered, "No unidos y no silenciados")
   filtered <- fixFreq(filtered, "Random")
   
   internals <- filtered %>%
@@ -220,7 +220,7 @@ featuresOfThePlot <- function(df) {
               show.legend = F,
               alpha = 0.3) +
     xlab("Loops internos") +
-    geom_point(aes(shape = Tipo), show.legend = F, alpha = 0.7) +
+    geom_point(aes(color = Tipo), show.legend = F, alpha = 0.7) +
     ylab("%") + labs(color = "Listado") +
     facet_grid(~ LoopPattern) +
     scale_y_continuous(breaks = seq(0, limit, by = 10),
@@ -252,21 +252,21 @@ featuresOfThePlot <- function(df) {
 geneHitsByPattern <- function(df) {
   limit <- 70
   
-  filtered <- df %>%  filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, N.1, Gen) %>%
+  filtered <- df %>%  filter(str_length(LoopPattern) <= 8) %>%  
+    distinct(Tipo, LoopPattern, N.1,StemLoopSequence,Gen) %>%
     group_by(Tipo, LoopPattern, N.1) %>%
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n))
   
-  filtered <- fixFreq(filtered, "desestabilizado")
-  filtered <- fixFreq(filtered, "reprimidos")
-  filtered <- fixFreq(filtered, "unidos")
-  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Unidos y silenciados")
+  filtered <- fixFreq(filtered, "No unidos y silenciados")
+  filtered <- fixFreq(filtered, "Unidos y no silenciados")
+  filtered <- fixFreq(filtered, "No unidos y no silenciados")
   filtered <- fixFreq(filtered, "Random")
   
   write.table(filtered, "test1.txt", sep = "\t")
   
-  n1 <- filtered %>%
+  N2 <- filtered %>%
     ggplot(aes(
       x = N.1,
       y = freq * 100,
@@ -295,20 +295,20 @@ geneHitsByPattern <- function(df) {
     )
   
   filtered <- df %>% filter(str_length(LoopPattern) <= 8) %>%
-    distinct(Tipo, LoopPattern, N1, Gen) %>%
-    group_by(Tipo, LoopPattern, N1) %>%
+    distinct(Tipo, LoopPattern, N2, Gen) %>%
+    group_by(Tipo, LoopPattern, N2) %>%
     dplyr::summarise(n = n()) %>%
     mutate(freq = n / sum(n))
   
-  filtered <- fixFreq(filtered, "desestabilizado")
-  filtered <- fixFreq(filtered, "reprimidos")
-  filtered <- fixFreq(filtered, "unidos")
-  filtered <- fixFreq(filtered, "no unidos")
+  filtered <- fixFreq(filtered, "Unidos y silenciados")
+  filtered <- fixFreq(filtered, "No unidos y silenciados")
+  filtered <- fixFreq(filtered, "Unidos y no silenciados")
+  filtered <- fixFreq(filtered, "No unidos y no silenciados")
   filtered <- fixFreq(filtered, "Random")
   
   n2 <- filtered %>%
     ggplot(aes(
-      x = N1,
+      x = N2,
       y = freq * 100,
       group = Tipo,
       color = Tipo
@@ -317,8 +317,8 @@ geneHitsByPattern <- function(df) {
     xlab("Base N2") +
     geom_point(aes(size = Tipo), alpha = 0.5, show.legend = T) +
     geom_segment(aes(
-      x = N1,
-      xend = N1,
+      x = N2,
+      xend = N2,
       y = 0,
       yend = freq * 100
     ), alpha = 0.5) +
@@ -333,7 +333,7 @@ geneHitsByPattern <- function(df) {
     )
   
   print(grid.arrange(
-    n1,
+    N2,
     n2,
     ncol = 1,
     top = text_grob(
@@ -437,7 +437,7 @@ plotNBases <- function(df) {
   windowsFonts(Calibri = windowsFont("TT Calibri Light"))
   
   myPlot <- df %>%
-    select (Tipo, N.2, N.1, N1, N5, N6, N7, N8) %>%
+    select (Tipo, N.2, N.1, N2, N5, N6, N7, N8) %>%
     gather(metric, value, -Tipo) %>%
     filter(value %in% c("A", "G", "C", "U")) %>%
     mutate(metric = str_replace_all(metric, "N.1", "N(-1)")) %>%
@@ -584,7 +584,7 @@ pairsMFEPlot <- function(df) {
     ggtitle("Energía libre en los stem-loops",
             subtitle = "Sobre el total de stem-loops en todos los transcriptos") +
     geom_vline(
-      data = filter(fly, Tipo == "unidos"),
+      data = filter(fly, Tipo == "Unidos y no silenciados"),
       aes(xintercept = median(RnaFoldMFE), group = Tipo),
       color = "red",
       linetype = "dashed",
@@ -592,7 +592,7 @@ pairsMFEPlot <- function(df) {
       size = 1
     ) +
     geom_vline(
-      data = filter(fly, Tipo == "desestabilizado"),
+      data = filter(fly, Tipo == "Unidos y silenciados"),
       aes(xintercept = median(RnaFoldMFE), group = Tipo),
       color = "blue",
       linetype = "dashed",
@@ -600,7 +600,7 @@ pairsMFEPlot <- function(df) {
       size = 1
     ) +
     geom_vline(
-      data = filter(fly, Tipo == "reprimidos"),
+      data = filter(fly, Tipo == "No unidos y silenciados"),
       aes(xintercept = median(RnaFoldMFE), group = Tipo),
       color = "darkgreen",
       linetype = "dashed",
@@ -608,7 +608,7 @@ pairsMFEPlot <- function(df) {
       size = 1
     )+
     geom_vline(
-      data = filter(fly, Tipo == "no unidos"),
+      data = filter(fly, Tipo == "No unidos y no silenciados"),
       aes(xintercept = median(RnaFoldMFE), group = Tipo),
       color = "darkgreen",
       linetype = "dashed",

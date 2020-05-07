@@ -1,99 +1,99 @@
 "Tipo"	"LoopPattern"	"N.1"	"n"	"freq"
-"1"	"desestabilizado"	"CNGG"	"A"	5	0.0617283950617284
-"2"	"desestabilizado"	"CNGG"	"C"	9	0.111111111111111
-"3"	"desestabilizado"	"CNGG"	"G"	51	0.62962962962963
-"4"	"desestabilizado"	"CNGG"	"U"	16	0.197530864197531
-"5"	"desestabilizado"	"CNGGN"	"A"	13	0.0849673202614379
-"6"	"desestabilizado"	"CNGGN"	"C"	51	0.333333333333333
-"7"	"desestabilizado"	"CNGGN"	"G"	66	0.431372549019608
-"8"	"desestabilizado"	"CNGGN"	"U"	23	0.150326797385621
-"9"	"desestabilizado"	"CNGGNN"	"A"	8	0.114285714285714
-"10"	"desestabilizado"	"CNGGNN"	"C"	14	0.2
-"11"	"desestabilizado"	"CNGGNN"	"G"	26	0.371428571428571
-"12"	"desestabilizado"	"CNGGNN"	"U"	22	0.314285714285714
-"13"	"desestabilizado"	"CNGGNNN"	"A"	8	0.421052631578947
-"14"	"desestabilizado"	"CNGGNNN"	"C"	3	0.157894736842105
-"15"	"desestabilizado"	"CNGGNNN"	"G"	4	0.210526315789474
-"16"	"desestabilizado"	"CNGGNNN"	"U"	4	0.210526315789474
-"17"	"desestabilizado"	"CNGGNNNN"	"A"	4	0.0952380952380952
-"18"	"desestabilizado"	"CNGGNNNN"	"C"	17	0.404761904761905
-"19"	"desestabilizado"	"CNGGNNNN"	"G"	11	0.261904761904762
-"20"	"desestabilizado"	"CNGGNNNN"	"U"	10	0.238095238095238
-"21"	"no unidos"	"CNGG"	"A"	13	0.168831168831169
-"22"	"no unidos"	"CNGG"	"C"	9	0.116883116883117
-"23"	"no unidos"	"CNGG"	"G"	27	0.350649350649351
-"24"	"no unidos"	"CNGG"	"U"	28	0.363636363636364
-"25"	"no unidos"	"CNGGN"	"A"	6	0.103448275862069
-"26"	"no unidos"	"CNGGN"	"C"	19	0.327586206896552
-"27"	"no unidos"	"CNGGN"	"G"	14	0.241379310344828
-"28"	"no unidos"	"CNGGN"	"U"	19	0.327586206896552
-"29"	"no unidos"	"CNGGNN"	"A"	13	0.224137931034483
-"30"	"no unidos"	"CNGGNN"	"C"	18	0.310344827586207
-"31"	"no unidos"	"CNGGNN"	"G"	14	0.241379310344828
-"32"	"no unidos"	"CNGGNN"	"U"	13	0.224137931034483
-"33"	"no unidos"	"CNGGNNN"	"A"	4	0.173913043478261
-"34"	"no unidos"	"CNGGNNN"	"C"	6	0.260869565217391
-"35"	"no unidos"	"CNGGNNN"	"G"	11	0.478260869565217
-"36"	"no unidos"	"CNGGNNN"	"U"	2	0.0869565217391304
-"37"	"no unidos"	"CNGGNNNN"	"A"	1	0.0232558139534884
-"38"	"no unidos"	"CNGGNNNN"	"C"	14	0.325581395348837
-"39"	"no unidos"	"CNGGNNNN"	"G"	22	0.511627906976744
-"40"	"no unidos"	"CNGGNNNN"	"U"	6	0.13953488372093
-"41"	"Random"	"CNGG"	"A"	145	0.188311688311688
-"42"	"Random"	"CNGG"	"C"	201	0.261038961038961
-"43"	"Random"	"CNGG"	"G"	225	0.292207792207792
-"44"	"Random"	"CNGG"	"U"	199	0.258441558441558
-"45"	"Random"	"CNGGN"	"A"	127	0.196899224806202
-"46"	"Random"	"CNGGN"	"C"	171	0.265116279069767
-"47"	"Random"	"CNGGN"	"G"	186	0.288372093023256
-"48"	"Random"	"CNGGN"	"U"	161	0.249612403100775
-"49"	"Random"	"CNGGNN"	"A"	122	0.183183183183183
-"50"	"Random"	"CNGGNN"	"C"	190	0.285285285285285
-"51"	"Random"	"CNGGNN"	"G"	191	0.286786786786787
-"52"	"Random"	"CNGGNN"	"U"	163	0.244744744744745
-"53"	"Random"	"CNGGNNN"	"A"	94	0.2
-"54"	"Random"	"CNGGNNN"	"C"	133	0.282978723404255
-"55"	"Random"	"CNGGNNN"	"G"	127	0.270212765957447
-"56"	"Random"	"CNGGNNN"	"U"	116	0.246808510638298
-"57"	"Random"	"CNGGNNNN"	"A"	100	0.200400801603206
-"58"	"Random"	"CNGGNNNN"	"C"	136	0.272545090180361
-"59"	"Random"	"CNGGNNNN"	"G"	130	0.260521042084168
-"60"	"Random"	"CNGGNNNN"	"U"	133	0.266533066132265
-"61"	"reprimidos"	"CNGG"	"A"	65	0.105691056910569
-"62"	"reprimidos"	"CNGG"	"C"	84	0.136585365853659
-"63"	"reprimidos"	"CNGG"	"G"	302	0.491056910569106
-"64"	"reprimidos"	"CNGG"	"U"	164	0.266666666666667
-"65"	"reprimidos"	"CNGGN"	"A"	54	0.0912162162162162
-"66"	"reprimidos"	"CNGGN"	"C"	200	0.337837837837838
-"67"	"reprimidos"	"CNGGN"	"G"	229	0.386824324324324
-"68"	"reprimidos"	"CNGGN"	"U"	109	0.184121621621622
-"69"	"reprimidos"	"CNGGNN"	"A"	78	0.158536585365854
-"70"	"reprimidos"	"CNGGNN"	"C"	128	0.260162601626016
-"71"	"reprimidos"	"CNGGNN"	"G"	185	0.376016260162602
-"72"	"reprimidos"	"CNGGNN"	"U"	101	0.205284552845528
-"73"	"reprimidos"	"CNGGNNN"	"A"	30	0.145631067961165
-"74"	"reprimidos"	"CNGGNNN"	"C"	58	0.281553398058252
-"75"	"reprimidos"	"CNGGNNN"	"G"	74	0.359223300970874
-"76"	"reprimidos"	"CNGGNNN"	"U"	44	0.213592233009709
-"77"	"reprimidos"	"CNGGNNNN"	"A"	32	0.115942028985507
-"78"	"reprimidos"	"CNGGNNNN"	"C"	94	0.340579710144928
-"79"	"reprimidos"	"CNGGNNNN"	"G"	109	0.394927536231884
-"80"	"reprimidos"	"CNGGNNNN"	"U"	41	0.148550724637681
-"81"	"unidos"	"CNGG"	"A"	4	0.121212121212121
-"82"	"unidos"	"CNGG"	"C"	4	0.121212121212121
-"83"	"unidos"	"CNGG"	"G"	20	0.606060606060606
-"84"	"unidos"	"CNGG"	"U"	5	0.151515151515152
-"85"	"unidos"	"CNGGN"	"A"	1	0.0256410256410256
-"86"	"unidos"	"CNGGN"	"C"	19	0.487179487179487
-"87"	"unidos"	"CNGGN"	"G"	14	0.358974358974359
-"88"	"unidos"	"CNGGN"	"U"	5	0.128205128205128
-"89"	"unidos"	"CNGGNN"	"A"	4	0.222222222222222
-"90"	"unidos"	"CNGGNN"	"C"	2	0.111111111111111
-"91"	"unidos"	"CNGGNN"	"G"	9	0.5
-"92"	"unidos"	"CNGGNN"	"U"	3	0.166666666666667
-"93"	"unidos"	"CNGGNNN"	"A"	1	0.111111111111111
-"94"	"unidos"	"CNGGNNN"	"C"	2	0.222222222222222
-"95"	"unidos"	"CNGGNNN"	"G"	6	0.666666666666667
-"96"	"unidos"	"CNGGNNNN"	"C"	6	0.461538461538462
-"97"	"unidos"	"CNGGNNNN"	"G"	5	0.384615384615385
-"98"	"unidos"	"CNGGNNNN"	"U"	2	0.153846153846154
+"1"	"No unidos y no silenciados"	"CNGG"	"A"	11	0.174603174603175
+"2"	"No unidos y no silenciados"	"CNGG"	"C"	9	0.142857142857143
+"3"	"No unidos y no silenciados"	"CNGG"	"G"	18	0.285714285714286
+"4"	"No unidos y no silenciados"	"CNGG"	"U"	25	0.396825396825397
+"5"	"No unidos y no silenciados"	"CNGGN"	"A"	6	0.133333333333333
+"6"	"No unidos y no silenciados"	"CNGGN"	"C"	17	0.377777777777778
+"7"	"No unidos y no silenciados"	"CNGGN"	"G"	10	0.222222222222222
+"8"	"No unidos y no silenciados"	"CNGGN"	"U"	12	0.266666666666667
+"9"	"No unidos y no silenciados"	"CNGGNN"	"A"	14	0.274509803921569
+"10"	"No unidos y no silenciados"	"CNGGNN"	"C"	14	0.274509803921569
+"11"	"No unidos y no silenciados"	"CNGGNN"	"G"	11	0.215686274509804
+"12"	"No unidos y no silenciados"	"CNGGNN"	"U"	12	0.235294117647059
+"13"	"No unidos y no silenciados"	"CNGGNNN"	"A"	3	0.166666666666667
+"14"	"No unidos y no silenciados"	"CNGGNNN"	"C"	6	0.333333333333333
+"15"	"No unidos y no silenciados"	"CNGGNNN"	"G"	8	0.444444444444444
+"16"	"No unidos y no silenciados"	"CNGGNNN"	"U"	1	0.0555555555555556
+"17"	"No unidos y no silenciados"	"CNGGNNNN"	"A"	1	0.027027027027027
+"18"	"No unidos y no silenciados"	"CNGGNNNN"	"C"	11	0.297297297297297
+"19"	"No unidos y no silenciados"	"CNGGNNNN"	"G"	19	0.513513513513513
+"20"	"No unidos y no silenciados"	"CNGGNNNN"	"U"	6	0.162162162162162
+"21"	"No unidos y silenciados"	"CNGG"	"A"	66	0.0963503649635036
+"22"	"No unidos y silenciados"	"CNGG"	"C"	88	0.128467153284672
+"23"	"No unidos y silenciados"	"CNGG"	"G"	345	0.503649635036496
+"24"	"No unidos y silenciados"	"CNGG"	"U"	186	0.271532846715328
+"25"	"No unidos y silenciados"	"CNGGN"	"A"	57	0.0893416927899686
+"26"	"No unidos y silenciados"	"CNGGN"	"C"	212	0.332288401253919
+"27"	"No unidos y silenciados"	"CNGGN"	"G"	251	0.393416927899687
+"28"	"No unidos y silenciados"	"CNGGN"	"U"	118	0.184952978056426
+"29"	"No unidos y silenciados"	"CNGGNN"	"A"	80	0.154440154440154
+"30"	"No unidos y silenciados"	"CNGGNN"	"C"	136	0.262548262548263
+"31"	"No unidos y silenciados"	"CNGGNN"	"G"	199	0.384169884169884
+"32"	"No unidos y silenciados"	"CNGGNN"	"U"	103	0.198841698841699
+"33"	"No unidos y silenciados"	"CNGGNNN"	"A"	31	0.14622641509434
+"34"	"No unidos y silenciados"	"CNGGNNN"	"C"	61	0.287735849056604
+"35"	"No unidos y silenciados"	"CNGGNNN"	"G"	75	0.35377358490566
+"36"	"No unidos y silenciados"	"CNGGNNN"	"U"	45	0.212264150943396
+"37"	"No unidos y silenciados"	"CNGGNNNN"	"A"	32	0.111111111111111
+"38"	"No unidos y silenciados"	"CNGGNNNN"	"C"	98	0.340277777777778
+"39"	"No unidos y silenciados"	"CNGGNNNN"	"G"	117	0.40625
+"40"	"No unidos y silenciados"	"CNGGNNNN"	"U"	41	0.142361111111111
+"41"	"Random"	"CNGG"	"A"	26	0.118721461187215
+"42"	"Random"	"CNGG"	"C"	42	0.191780821917808
+"43"	"Random"	"CNGG"	"G"	86	0.392694063926941
+"44"	"Random"	"CNGG"	"U"	65	0.296803652968037
+"45"	"Random"	"CNGGN"	"A"	17	0.115646258503401
+"46"	"Random"	"CNGGN"	"C"	39	0.26530612244898
+"47"	"Random"	"CNGGN"	"G"	43	0.292517006802721
+"48"	"Random"	"CNGGN"	"U"	48	0.326530612244898
+"49"	"Random"	"CNGGNN"	"A"	26	0.188405797101449
+"50"	"Random"	"CNGGNN"	"C"	46	0.333333333333333
+"51"	"Random"	"CNGGNN"	"G"	38	0.27536231884058
+"52"	"Random"	"CNGGNN"	"U"	28	0.202898550724638
+"53"	"Random"	"CNGGNNN"	"A"	7	0.0777777777777778
+"54"	"Random"	"CNGGNNN"	"C"	28	0.311111111111111
+"55"	"Random"	"CNGGNNN"	"G"	28	0.311111111111111
+"56"	"Random"	"CNGGNNN"	"U"	27	0.3
+"57"	"Random"	"CNGGNNNN"	"A"	18	0.169811320754717
+"58"	"Random"	"CNGGNNNN"	"C"	33	0.311320754716981
+"59"	"Random"	"CNGGNNNN"	"G"	31	0.292452830188679
+"60"	"Random"	"CNGGNNNN"	"U"	24	0.226415094339623
+"61"	"Unidos y no silenciados"	"CNGG"	"A"	5	0.138888888888889
+"62"	"Unidos y no silenciados"	"CNGG"	"C"	4	0.111111111111111
+"63"	"Unidos y no silenciados"	"CNGG"	"G"	22	0.611111111111111
+"64"	"Unidos y no silenciados"	"CNGG"	"U"	5	0.138888888888889
+"65"	"Unidos y no silenciados"	"CNGGN"	"A"	1	0.0238095238095238
+"66"	"Unidos y no silenciados"	"CNGGN"	"C"	19	0.452380952380952
+"67"	"Unidos y no silenciados"	"CNGGN"	"G"	17	0.404761904761905
+"68"	"Unidos y no silenciados"	"CNGGN"	"U"	5	0.119047619047619
+"69"	"Unidos y no silenciados"	"CNGGNN"	"A"	5	0.238095238095238
+"70"	"Unidos y no silenciados"	"CNGGNN"	"C"	2	0.0952380952380952
+"71"	"Unidos y no silenciados"	"CNGGNN"	"G"	11	0.523809523809524
+"72"	"Unidos y no silenciados"	"CNGGNN"	"U"	3	0.142857142857143
+"73"	"Unidos y no silenciados"	"CNGGNNN"	"A"	1	0.111111111111111
+"74"	"Unidos y no silenciados"	"CNGGNNN"	"C"	2	0.222222222222222
+"75"	"Unidos y no silenciados"	"CNGGNNN"	"G"	6	0.666666666666667
+"76"	"Unidos y no silenciados"	"CNGGNNNN"	"C"	6	0.461538461538462
+"77"	"Unidos y no silenciados"	"CNGGNNNN"	"G"	5	0.384615384615385
+"78"	"Unidos y no silenciados"	"CNGGNNNN"	"U"	2	0.153846153846154
+"79"	"Unidos y silenciados"	"CNGG"	"A"	6	0.0666666666666667
+"80"	"Unidos y silenciados"	"CNGG"	"C"	9	0.1
+"81"	"Unidos y silenciados"	"CNGG"	"G"	58	0.644444444444444
+"82"	"Unidos y silenciados"	"CNGG"	"U"	17	0.188888888888889
+"83"	"Unidos y silenciados"	"CNGGN"	"A"	15	0.0898203592814371
+"84"	"Unidos y silenciados"	"CNGGN"	"C"	53	0.317365269461078
+"85"	"Unidos y silenciados"	"CNGGN"	"G"	75	0.449101796407186
+"86"	"Unidos y silenciados"	"CNGGN"	"U"	24	0.143712574850299
+"87"	"Unidos y silenciados"	"CNGGNN"	"A"	8	0.108108108108108
+"88"	"Unidos y silenciados"	"CNGGNN"	"C"	14	0.189189189189189
+"89"	"Unidos y silenciados"	"CNGGNN"	"G"	27	0.364864864864865
+"90"	"Unidos y silenciados"	"CNGGNN"	"U"	25	0.337837837837838
+"91"	"Unidos y silenciados"	"CNGGNNN"	"A"	8	0.421052631578947
+"92"	"Unidos y silenciados"	"CNGGNNN"	"C"	3	0.157894736842105
+"93"	"Unidos y silenciados"	"CNGGNNN"	"G"	4	0.210526315789474
+"94"	"Unidos y silenciados"	"CNGGNNN"	"U"	4	0.210526315789474
+"95"	"Unidos y silenciados"	"CNGGNNNN"	"A"	4	0.0930232558139535
+"96"	"Unidos y silenciados"	"CNGGNNNN"	"C"	18	0.418604651162791
+"97"	"Unidos y silenciados"	"CNGGNNNN"	"G"	11	0.255813953488372
+"98"	"Unidos y silenciados"	"CNGGNNNN"	"U"	10	0.232558139534884
