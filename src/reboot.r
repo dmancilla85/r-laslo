@@ -16,10 +16,12 @@ fly.bound <- read.csv(
   stringsAsFactors = TRUE
 )
 
-# nounidos <- read.table("./data/fly_non_bound.txt",header = T)
-# reprimidos <- read.table("./data/fly_repressed.txt",header = T)
-# nounidos <- read.table("./data/fly_non_bound.lst",header = F)
-# reprimidos <- read.table("./data/fly_repressed.lst",header = F)
+#nounidos <- read.table("./data/fly_non_bound.txt",header = T,stringsAsFactors = F)
+#reprimidos <- read.table("./data/fly_repressed.txt",header = T,stringsAsFactors = F)
+nounidos <- read.table("./data/fly_non_bound.lst",header = F,stringsAsFactors = F)
+reprimidos <- read.table("./data/fly_repressed.lst",header = F,stringsAsFactors = F)
+nounidos <- nounidos %>% anti_join(reprimidos)
+write.table(nounidos,"nounidos.lst")
 
 fly.nonbound <- read.csv(
   "./data/stem15/fly_nonbound.local.4.15.csv",
@@ -105,8 +107,7 @@ summary(fly.repressed$LoopPattern) # 6327
 summary(fly.rnd$LoopPattern)       # 762
 summary(fly.desest$LoopPattern)    # 1090
 
-
-fly_unique <- fly %>% distinct(Tipo, Gen, StemLoopSequence)
+fly$Id <- 1:nrow(fly)
 
 # revisar las proporciones informadas en cada set
 featuresOfThePlot(fly) # ok 1
