@@ -10,7 +10,7 @@ fly.rnd <- read.csv(
 )
 
 fly.bound <- read.csv(
-  "./data/stem15/fly_bound.local.4.15.csv",
+  "./data/stem15/fly.bound.local.4.15.csv",
   sep = ";",
   dec = ",",
   stringsAsFactors = TRUE
@@ -21,10 +21,11 @@ fly.bound <- read.csv(
 nounidos <- read.table("./data/fly_non_bound.lst",header = F,stringsAsFactors = F)
 reprimidos <- read.table("./data/fly_repressed.lst",header = F,stringsAsFactors = F)
 nounidos <- nounidos %>% anti_join(reprimidos)
+
 write.table(nounidos,"nounidos.lst")
 
 fly.nonbound <- read.csv(
-  "./data/stem15/fly_nonbound.local.4.15.csv",
+  "./data/stem15/fly.non_bound.local.4.15.csv",
   sep = ";",
   dec = ",",
   stringsAsFactors = TRUE
@@ -32,7 +33,7 @@ fly.nonbound <- read.csv(
 
 # First random file
 fly.repressed <- read.csv(
-  "./data/stem15/fly_repressed.local.4.15.csv",
+  "./data/stem15/fly.repressed.local.4.15.csv",
   sep = ";",
   dec = ",",
   stringsAsFactors = TRUE
@@ -89,11 +90,11 @@ fly.repressed %>% distinct(Gen) %>% nrow()  # 1171
 fly.rnd       %>% distinct(Gen) %>% nrow()  # 233
 fly.desest    %>% distinct(Gen) %>% nrow()  # 183
 
-fly.bound     %>% distinct(AccessionID) %>% nrow()  # 179
-fly.nonbound  %>% distinct(AccessionID) %>% nrow()  # 395
-fly.repressed %>% distinct(AccessionID) %>% nrow()  # 3036
-fly.rnd       %>% distinct(AccessionID) %>% nrow()  # 474
-fly.desest    %>% distinct(AccessionID) %>% nrow()  # 468
+fly.bound     %>% distinct(AccessionID) %>% nrow()  # 174
+fly.nonbound  %>% distinct(AccessionID) %>% nrow()  # 393
+fly.repressed %>% distinct(AccessionID) %>% nrow()  # 3035
+fly.rnd       %>% distinct(AccessionID) %>% nrow()  # 479
+fly.desest    %>% distinct(AccessionID) %>% nrow()  # 469
 
 nrow(fly.bound)     # 293
 nrow(fly.nonbound)  # 588
@@ -108,6 +109,17 @@ summary(fly.rnd$LoopPattern)       # 762
 summary(fly.desest$LoopPattern)    # 1090
 
 fly$Id <- 1:nrow(fly)
+fly$N10 <- fly$N9
+fly$N9 <- fly$N8
+fly$N8 <- fly$N7
+fly$N7 <- fly$N6
+fly$N6 <- fly$N5
+fly$N5 <- fly$N4
+fly$N4 <- fly$N3
+fly$N3 <- fly$N2
+fly$N2 <- fly$N1
+fly$N1 <- fly$N0
+fly$N0 <- NULL
 
 # revisar las proporciones informadas en cada set
 featuresOfThePlot(fly) # ok 1
