@@ -664,10 +664,10 @@ relativePositionPlot <- function(df) {
   myPlot <-
     df %>% ggplot(aes(
       color = Tipo,
-      x = RelativePosition,
-      y = (-1) * RnaFoldMFE
+      x = RelativePosition
+      #y = (-1) * RnaFoldMFE
     )) + 
-    geom_smooth(method = "auto", se=F) +
+    geom_density() + #geom_smooth(method = "auto", se=F) +
     ggtitle("Variación de la estabilidad con respecto a la posición relativa en la secuencia") +
     theme_pubr()
   

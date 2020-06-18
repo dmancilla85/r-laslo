@@ -121,7 +121,7 @@ if (!require(devtools)) {
 
 if (!require(JLutils)) {
   #source("https://install-github.me/larmarange/JLutils")
-  install_github("larmarange/JLutils")
+  install_github("larmarange/JLutils",force=TRUE)
   library(JLutils)
 }
 
