@@ -109,17 +109,29 @@ summary(fly.rnd$LoopPattern)       # 758
 summary(fly.desest$LoopPattern)    # 1083
 
 fly$Id <- 1:nrow(fly)
-fly$N10 <- fly$N9
-fly$N9 <- fly$N8
-fly$N8 <- fly$N7
-fly$N7 <- fly$N6
-fly$N6 <- fly$N5
-fly$N5 <- fly$N4
-fly$N4 <- fly$N3
-fly$N3 <- fly$N2
-fly$N2 <- fly$N1
-fly$N1 <- fly$N0
+fly$N10 <- as.factor(fly$N9) 
+fly$N9 <-  as.factor(fly$N8) 
+fly$N8 <-  as.factor(fly$N7) 
+fly$N7 <-  as.factor(fly$N6) 
+fly$N6 <-  as.factor(fly$N5) 
+fly$N5 <-  as.factor(fly$N4) 
+fly$N4 <-  as.factor(fly$N3) 
+fly$N3 <-  as.factor(fly$N2) 
+fly$N2 <-  as.factor(fly$N1) 
+fly$N1 <-  as.factor(fly$N0) 
 fly$N0 <- NULL
+
+levels(fly$N1) <- c("A","C","G","U")
+levels(fly$N2) <- c("A","C","G","U")
+levels(fly$N3) <- c("A","C","G","U")
+levels(fly$N4) <- c("A","C","G","U")
+levels(fly$N5) <- c("A","C","G","U")
+levels(fly$N6) <- c("A","C","G","U", NA)
+levels(fly$N7) <- c("A","C","G","U", NA)
+levels(fly$N8) <- c("A","C","G","U", NA)
+levels(fly$N9) <- c("A","C","G","U", NA)
+levels(fly$N10) <- c("A","C","G","U", NA)
+
 
 # revisar las proporciones informadas en cada set
 featuresOfThePlot(fly) # ok 1
@@ -134,10 +146,41 @@ purinePlot(fly)
 relativePositionPlot(fly)
 locationPlot(fly)
 
+# HEATMAP
+library(reshape2)
+un <- filter(fly,Tipo=="Unidos y no silenciados")
+un <- scale(table(un$TerminalPair, un$Location))
+un <- melt(un)
+un$Tipo <- "Unidos y no silenciados"
+us <- filter(fly,Tipo=="Unidos y silenciados")
+us <- scale(table(us$TerminalPair, us$Location))
+us <- melt(us)
+us$Tipo <- "Unidos y silenciados"
+nn <- filter(fly,Tipo=="No unidos y no silenciados")
+nn <- scale(table(nn$TerminalPair, nn$Location))
+nn <- melt(nn)
+nn$Tipo <- "No unidos y no silenciados"
+ns <- filter(fly,Tipo=="No unidos y silenciados")
+ns <- scale(table(ns$TerminalPair, ns$Location))
+ns <- melt(ns)
+ns$Tipo <- "No unidos y silenciados"
+ra <- filter(fly,Tipo=="Random")
+ra <- scale(table(ra$TerminalPair, ra$Location))
+ra <- melt(ra)
+ra$Tipo <- "Random"
+data<-rbind(un,us,nn,ns,ra)
+
+pal <- wes_palette("Zissou1", 100, type = "continuous")
+
+ggplot(data, aes(Var1, Var2, fill= value)) + 
+  geom_tile() + scale_fill_gradient2(low="red",mid="black",high="green") +
+  xlab("Cierre terminal") + ylab("Sitio") + facet_wrap(~ Tipo) +guides(fill=F)+
+  ggtitle("Cierres terminales por cada sitio del transcrito")
+
+
 ####################################################
 ## ESTADISTICOS
 ####################################################
-
 
 myTable <- fly %>%
   select (Tipo, N.2, N.1, N2, N5, N6, N7, N8) %>%
@@ -172,7 +215,7 @@ corrplot(contrib1, is.cor = FALSE)
 n2 <- myTable %>% filter(metric=="N2")  
 n2 <- table(n2$Tipo, n2$value)
 cq2 <- chisq.test(n2) # X-squared = 164.23, df = 12, p-value < 2.2e-16
-corrplot(cq1$residuals, is.cor = FALSE,method="square")
+corrplot(cq2$residuals, is.cor = FALSE,method="square")
 contrib2 <- 100*cq2$residuals^2/cq2$statistic
 corrplot(contrib2, is.cor = FALSE)
 
@@ -197,3 +240,35 @@ cq <- chisq.test(n8) # X-squared = 39.747, df = 12, p-value = 7.92e-05 *may be i
 corrplot(cq$residuals, is.cor = FALSE)
 
 
+###############################################################################
+# ANALISIS DE COMPONENTES PRINCIPALES
+###############################################################################
+#install.packages("Gifi")
+library(Gifi)
+prueba <- princals(select(fly,Location,LoopPattern,TerminalPair,N.2,N.1,N2,N5,Pairments,
+                          WooblePairs,Bulges,InternalLoops,RnaFoldMFE,CG_PercentPairs,AU_PercentPairs))
+
+plot(prueba, plot.type = "transplot")
+plot(prueba, plot.type = "loadplot")
+plot(prueba, plot.type = "biplot")
+
+
+###############################################################################
+# k-prototipos
+###############################################################################
+install.packages("clustMixType")
+library(clustMixType)
+
+dt <- select(fly,Location,LoopPattern,TerminalPair,N.2,N.1,N2,N5,Pairments,
+             WooblePairs,Bulges,InternalLoops,RnaFoldMFE,CG_PercentPairs,AU_PercentPairs)
+clst <- kproto(dt, k=4, iter.max = 1000, nstart = 1, na.rm = TRUE)
+
+clprofiles(clst, dt, col = wes_palette("Royal1", 4, type = "continuous")) # figure 1
+
+Es <- numeric(10)
+for(i in 1:10){
+  kpres <- kproto(dt, k = i, nstart = 5)
+  Es[i] <- kpres$tot.withinss
+}
+plot(1:10, Es, type = "b", ylab = "Objective Function", xlab = "# Clusters",
+     main = "Scree Plot") # figure 2
