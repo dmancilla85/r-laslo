@@ -1,3 +1,3 @@
 # R-laslo
-Data cleaning and analysis of LASLO results.
+Data cleaning and analysis of LASLO (aka LoopMatcher) results.
 
