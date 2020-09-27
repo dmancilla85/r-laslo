@@ -94,6 +94,11 @@ if (!require(gridExtra)) {
   library(gridEXtra)
 }
 
+if (!require(scales)) {
+  install.packages("scales")
+  library(scales)
+}
+
 if (!require(wesanderson)) {
   install.packages("wesanderson")
   library(wesanderson)

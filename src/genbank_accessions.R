@@ -16,20 +16,21 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
 if (!require(annotate)) {
   BiocManager::install("annotate")
   library(annotate)
+  a
 }
 
 if (!require(dplyr)) {
-  install.packages('dplyr')
+  install.packages("dplyr")
   library(dplyr)
 }
 
 if (!require(tidyverse)) {
-  install.packages('tidyverse')
+  install.packages("tidyverse")
   library(tidyverse)
 }
 
 if (!require(stringr)) {
-  install.packages('stringr')
+  install.packages("stringr")
   library(stringr)
 }
 
@@ -86,25 +87,25 @@ showError <- function(err, type = "Error:") {
 getNCBIRefSeq <- function(lst, prefix, prmType = "accession") {
   # Clear screen
   cat("\014")
-  
+
   print("Starting process...")
-  
+
   for (i in 1:nrow(lst)) {
-    #print("Calling GenBank")
-    
+    # print("Calling GenBank")
+
     tryCatch(
-      xdoc <- genbank(lst$GeneID[i], type = prmType, disp = "data"),
+      xdoc <- annotate::genbank(lst$GeneID[i], type = prmType, disp = "data"),
       warning = function(err) {
         showError(err, "Warning")
-        #print(xdoc)
+        # print(xdoc)
       },
       error = function(err) {
         showError(err)
-        #print(xdoc)
+        # print(xdoc)
       }
     )
-    
-    
+
+
     # Check that id exists and check integrity of xdoc
     if (!is.null(xdoc) && class(xdoc) != "logical") {
       xmlDoc <- xmlToList(xdoc)
@@ -112,39 +113,41 @@ getNCBIRefSeq <- function(lst, prefix, prmType = "accession") {
       ix <- str_detect(xmlDoc, prefix)
       aux <- xmlDoc[ix]
       aux <- unlist(aux)
-      
-      
+
+
       if (i == 1) {
         res <- aux %>% unique()
       } else {
         aux <- aux %>% unique()
-        print(paste("Fila:",i,"Cont:",aux))
-        res <- c(res, aux)
+        print(paste("Fila:", i, "Cont:", aux))
+
+        if (str_length(aux) <= 20) {
+          res <- c(res, aux)
+        }
       }
     }
     # pause between API requests
     Sys.sleep(8)
   }
-  
+
   print("Finished.")
   res <- res %>% unique()
   return(res)
-  
 }
 
-# [1] "Fila: 166 Cont: NM_164834"    "Fila: 166 Cont: NM_057539"   
+# [1] "Fila: 166 Cont: NM_164834"    "Fila: 166 Cont: NM_057539"
 # [3] "Fila: 166 Cont: NM_001103656" "Fila: 166 Cont: NM_001298829"
-# [5] "Fila: 166 Cont: NM_164833" 
+# [5] "Fila: 166 Cont: NM_164833"
 ###########################################################
 # 3. Use example
 ###########################################################
 
 lst <- c("", "", "")
-lst <- read.table("./data/yeast_she.txt", header = T)
+lst <- read.table("./data/PospilikS2.txt", header = T)
 
 # Get transcripts (NM_x code)
-res <- getNCBIRefSeq(lst, prefix = refSeq[7])
+res <- getNCBIRefSeq(lst, prefix = refSeq[7], prmType = "uid")
 
 print(res)
-write(res, "./data/yeast_she.lst")
+write(res, "./data/PospilikS2.lst")
 warnings()
