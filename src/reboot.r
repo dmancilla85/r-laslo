@@ -275,13 +275,13 @@ n5 <- myTable %>% filter(metric == "N5")
 n5 <- table(n5$Tipo, n5$value)
 cq <-
   chisq.test(n5) # X-squared = 51.813, df = 12, p-value = 6.692e-07
-corrplot(cq$residuals, is.cor = FALSE)
+corrplot(cq$residuals, is.cor = FALSE, tl.srt = 0, tl.offset = 0.8)
 
 n6 <- myTable %>% filter(metric == "N6")
 n6 <- table(n6$Tipo, n6$value)
 cq <-
   chisq.test(n6) # X-squared = 42.266, df = 12, p-value = 3.004e-05
-corrplot(cq$residuals, is.cor = FALSE)
+corrplot(cq$residuals, is.cor = FALSE, tl.srt = 0, tl.offset = 0.8)
 
 n7 <- myTable %>% filter(metric == "N7")
 n7 <- table(n7$Tipo, n7$value)
@@ -293,7 +293,7 @@ n8 <- myTable %>% filter(metric == "N8")
 n8 <- table(n8$Tipo, n8$value)
 cq <-
   chisq.test(n8) # X-squared = 39.747, df = 12, p-value = 7.92e-05 *may be incorrect
-corrplot(cq$residuals, is.cor = FALSE)
+corrplot(cq$residuals, is.cor = FALSE, tl.srt = 0, tl.offset = 0.8)
 
 
 ###############################################################################
@@ -391,6 +391,15 @@ df <- fly %>%
   select(Gen, Tipo) %>%
   count()
 View(df)
+
+df %>%
+  filter(Tipo != "Random") %>%
+  ggplot(aes(x = Tipo, y = freq)) +
+  geom_boxplot() +
+  ylab("SREs únicos") +
+  xlab("Grupo") +
+  ggtitle("Cantidad de SRE por cada gen")
+View(df %>% filter(Tipo == "Random"))
 df %>%
   filter(freq > 3) %>%
   arrange(desc(freq))
@@ -421,7 +430,7 @@ df %>%
     breaks = seq(1, 14, 2)
   ) +
   ylab("Gen") +
-  ggtitle("Genes con mayor cantidad de SREs", subtitle = "Nota: Se quitaron los stem-loop repetidos en distintos transcriptos") +
+  ggtitle("Genes con mayor cantidad de SREs") +
   scale_color_manual(
     name = "Grupo",
     values = c("green", "red", "yellow", "orange")
@@ -491,3 +500,21 @@ n8 <- table(n8$Tipo, n8$value)
 cq <-
   chisq.test(n8) # X-squared = 39.747, df = 12, p-value = 7.92e-05 *may be incorrect
 corrplot(cq$residuals, is.cor = FALSE)
+
+
+# pares terminales
+myTable <- fly %>%
+  select(Tipo, TerminalPair) %>%
+  gather(metric, value, -Tipo)
+
+
+
+n_2 <- myTable %>% filter(metric == "TerminalPair")
+n_2 <- table(n_2$Tipo, n_2$value)
+cq <-
+  chisq.test(n_2) # X-squared = 88.471, df = 12, p-value = 9.756e-14
+
+corrplot(cq$residuals, is.cor = FALSE, tl.srt = 0, tl.offset = 1, method = "square")
+
+View(cq)
+vcd::assocstats(n_2)

@@ -16,7 +16,7 @@ Primero cargamos y limpiamos los resultados obtenidos con LASLO para listado de 
 
 ```{r, echo=TRUE, results="hide", warning=FALSE}
 # Carga de archivos
-df <- loadFiles(path="../data/fruitfly_bound/", pattern = "*.csv")
+df <- loadFiles(path = "../data/fruitfly_bound/", pattern = "*.csv")
 # Eliminar variables innecesarias
 df <- formatEnsembl(df)
 ```
@@ -40,56 +40,59 @@ plotBaseDistribution(df)
 ## Medidas del stem
 
 ```{r, echo=FALSE}
-par(mfrow=c(2,2))
-hist(df[df$Serie=="1",]$Pairments, main="Pares de bases", xlab="", ylab="Frecuencia", prob=TRUE, breaks=10, col="lightblue", xlim=c(3,15))
-hist(df[df$Serie=="0",]$Pairments, main="", xlab="", ylab="", prob=TRUE, breaks=10, col="lightgreen", xlim=c(3,15))
+par(mfrow = c(2, 2))
+hist(df[df$Serie == "1", ]$Pairments, main = "Pares de bases", xlab = "", ylab = "Frecuencia", prob = TRUE, breaks = 10, col = "lightblue", xlim = c(3, 15))
+hist(df[df$Serie == "0", ]$Pairments, main = "", xlab = "", ylab = "", prob = TRUE, breaks = 10, col = "lightgreen", xlim = c(3, 15))
 
-hist(df[df$Serie=="1",]$WooblePairs, main="Pares GU", xlab="Secuencias cDNA", ylab="Frecuencia", prob=TRUE, breaks=7, col="lightblue", xlim=c(0,8))
-hist(df[df$Serie=="0",]$WooblePairs, main="", xlab="Secuencias random", ylab="", prob=TRUE, breaks=7, col="lightgreen", xlim=c(0,8))
+hist(df[df$Serie == "1", ]$WooblePairs, main = "Pares GU", xlab = "Secuencias cDNA", ylab = "Frecuencia", prob = TRUE, breaks = 7, col = "lightblue", xlim = c(0, 8))
+hist(df[df$Serie == "0", ]$WooblePairs, main = "", xlab = "Secuencias random", ylab = "", prob = TRUE, breaks = 7, col = "lightgreen", xlim = c(0, 8))
 ```
 
 ```{r, echo=FALSE}
-par(mfrow=c(2,2))
-hist(df[df$Serie=="1",]$Bulges, main="Bulges", xlab="", ylab="Frecuencia", prob=TRUE, breaks=5, col="lightblue", xlim=c(0,6))
-hist(df[df$Serie=="0",]$Bulges, main="", xlab="", ylab="", prob=TRUE, breaks=5, col="lightgreen", xlim=c(0,6))
+par(mfrow = c(2, 2))
+hist(df[df$Serie == "1", ]$Bulges, main = "Bulges", xlab = "", ylab = "Frecuencia", prob = TRUE, breaks = 5, col = "lightblue", xlim = c(0, 6))
+hist(df[df$Serie == "0", ]$Bulges, main = "", xlab = "", ylab = "", prob = TRUE, breaks = 5, col = "lightgreen", xlim = c(0, 6))
 
-hist(df[df$Serie=="1",]$InternalLoops, main="Loops internos", xlab="Secuencias cDNA", ylab="Frecuencia", prob=TRUE, breaks=5, col="lightblue", xlim=c(0,6))
-hist(df[df$Serie=="0",]$InternalLoops, main="", xlab="Secuencias random", ylab="", prob=TRUE, breaks=5, col="lightgreen", xlim=c(0,6))
+hist(df[df$Serie == "1", ]$InternalLoops, main = "Loops internos", xlab = "Secuencias cDNA", ylab = "Frecuencia", prob = TRUE, breaks = 5, col = "lightblue", xlim = c(0, 6))
+hist(df[df$Serie == "0", ]$InternalLoops, main = "", xlab = "Secuencias random", ylab = "", prob = TRUE, breaks = 5, col = "lightgreen", xlim = c(0, 6))
 ```
 
 ## Comparación del tamaño del loop con la cantidad de pares
 
 ```{r, echo=FALSE}
-chen <- df[df$Serie=="1",]
+chen <- df[df$Serie == "1", ]
 
 chen$LoopN <- "N= 4"
-chen[chen$LoopPattern=="CNGGN",]$LoopN <- "N= 5"
-chen[chen$LoopPattern=="CNGGNN",]$LoopN <- "N= 6"
-chen[chen$LoopPattern=="CNGGNNN",]$LoopN <- "N= 7"
-chen[chen$LoopPattern=="CNGGNNNN",]$LoopN <- "N= 8"
-chen[chen$LoopPattern=="CNGGNNNNN",]$LoopN <- "N= 9"
-chen[chen$LoopPattern=="CNGGNNNNNN",]$LoopN <- "N=10"
+chen[chen$LoopPattern == "CNGGN", ]$LoopN <- "N= 5"
+chen[chen$LoopPattern == "CNGGNN", ]$LoopN <- "N= 6"
+chen[chen$LoopPattern == "CNGGNNN", ]$LoopN <- "N= 7"
+chen[chen$LoopPattern == "CNGGNNNN", ]$LoopN <- "N= 8"
+chen[chen$LoopPattern == "CNGGNNNNN", ]$LoopN <- "N= 9"
+chen[chen$LoopPattern == "CNGGNNNNNN", ]$LoopN <- "N=10"
 
 tb <- table(chen$LoopN, chen$Pairments)
-tb <- tb/nrow(chen)
-mosaicplot(tb, main = "Apareamientos por tamaño del loop en secuencias originales",
-     ylab="Cantidad de pares de bases", xlab="Tamaño del loop",
-     col = hcl(c(120, 10)))
+tb <- tb / nrow(chen)
+mosaicplot(tb,
+  main = "Apareamientos por tamaño del loop en secuencias originales",
+  ylab = "Cantidad de pares de bases", xlab = "Tamaño del loop",
+  col = hcl(c(120, 10))
+)
 ```
 
 ## Otro gráfico... 
 
 ```{r, echo =FALSE}
 chen$LoopN <- 4
-chen[chen$LoopPattern=="CNGGN",]$LoopN <- 5
-chen[chen$LoopPattern=="CNGGNN",]$LoopN <- 6
-chen[chen$LoopPattern=="CNGGNNN",]$LoopN <- 7
-chen[chen$LoopPattern=="CNGGNNNN",]$LoopN <- 8
-chen[chen$LoopPattern=="CNGGNNNNN",]$LoopN <- 9
-chen[chen$LoopPattern=="CNGGNNNNNN",]$LoopN <- 10
+chen[chen$LoopPattern == "CNGGN", ]$LoopN <- 5
+chen[chen$LoopPattern == "CNGGNN", ]$LoopN <- 6
+chen[chen$LoopPattern == "CNGGNNN", ]$LoopN <- 7
+chen[chen$LoopPattern == "CNGGNNNN", ]$LoopN <- 8
+chen[chen$LoopPattern == "CNGGNNNNN", ]$LoopN <- 9
+chen[chen$LoopPattern == "CNGGNNNNNN", ]$LoopN <- 10
 
-ggplot(chen, aes(x=Pairments)) +
-  geom_density(fill="lightblue") + facet_grid( LoopN  ~ .) +
+ggplot(chen, aes(x = Pairments)) +
+  geom_density(fill = "lightblue") +
+  facet_grid(LoopN ~ .) +
   ggtitle("Cantidad de apareamientos en función del tamaño del loop")
 ```
 

@@ -61,8 +61,8 @@
 #   StrRev(laslo[laslo$Sense=="-" & str_sub(laslo$LoopPattern,1,1) != "C", ]$LoopPattern)
 laslo <- df
 laslo$LoopPattern <- as.factor(laslo$LoopPattern)
-summary(laslo[laslo$Serie == 1,]$LoopPattern)
-summary(laslo[laslo$Serie == 0,]$LoopPattern)
+summary(laslo[laslo$Serie == 1, ]$LoopPattern)
+summary(laslo[laslo$Serie == 0, ]$LoopPattern)
 
 
 prop.table(table(laslo$LoopPattern, laslo$Serie), 2)
@@ -83,7 +83,7 @@ a <- prop.test(tb$`1`, tb$`0`)
 # 0.07622704 0.19134304 0.06760349 0.04407713 0.08033419
 
 # Hipotesis nula: Las proporciones no son sign. diferentes
-g <- GTest(tb$`Observed`, p = tb$`Expected`) #p.val < 2.2e-16
+g <- GTest(tb$`Observed`, p = tb$`Expected`) # p.val < 2.2e-16
 
 laslo %>% ggplot(aes(x = Serie, fill = LoopPattern)) +
   geom_bar(
@@ -92,13 +92,19 @@ laslo %>% ggplot(aes(x = Serie, fill = LoopPattern)) +
     width = 0.5,
     color = "brown"
   ) +
-  ylab("Frecuencia relativa") + geom_text(stat = "fill_labels",
-                                          size = 3) + xlab(NULL) +
-  scale_fill_discrete(name = "Secuencia consenso") + coord_flip() +
+  ylab("Frecuencia relativa") +
+  geom_text(
+    stat = "fill_labels",
+    size = 3
+  ) +
+  xlab(NULL) +
+  scale_fill_discrete(name = "Secuencia consenso") +
+  coord_flip() +
   ggtitle(
     "Porcentaje de las variantes del motivo consenso",
     subtitle = paste(g$method, "p-value:", formatC(
-      g$p.value, format = "e", digits = 2
+      g$p.value,
+      format = "e", digits = 2
     ))
   ) +
   theme_bw() # + theme(aspect.ratio = 1/2.5)
@@ -136,14 +142,15 @@ tb <- tb %>%
   spread(Var2, Freq) %>%
   mutate(Observed = `Original` / sum(`Original`)) %>%
   mutate(Expected = `Random` / sum(`Random`))
-tb <- tb %>% filter(`Original` > 0) %>%
+tb <- tb %>%
+  filter(`Original` > 0) %>%
   arrange(desc(`Original`))
 tb
 
 tb$proptest <- 0
 
 for (i in 1:nrow(tb)) {
-  tb[i,]$proptest <- prop.test(
+  tb[i, ]$proptest <- prop.test(
     x = c(tb[i, ]$Original, tb[i, ]$Random),
     n = c(sum(tb$Original), sum(tb$Random)),
     correct = TRUE
@@ -167,14 +174,15 @@ tb <- tb %>%
   spread(Var2, Freq) %>%
   mutate(Observed = `Original` / sum(`Original`)) %>%
   mutate(Expected = `Random` / sum(`Random`))
-tb <- tb %>% filter(`Original` > 0) %>%
+tb <- tb %>%
+  filter(`Original` > 0) %>%
   arrange(desc(`Original`))
 tb
 
 tb$proptest <- 0
 
 for (i in 1:nrow(tb)) {
-  tb[i,]$proptest <- prop.test(
+  tb[i, ]$proptest <- prop.test(
     x = c(tb[i, ]$Original, tb[i, ]$Random),
     n = c(sum(tb$Original), sum(tb$Random)),
     correct = TRUE

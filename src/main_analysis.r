@@ -37,9 +37,9 @@ fly.random <- read.csv(
 
 # Eliminar variables innecesarias
 fly.non_bound$Tipo <- "No unidos"
-#fly.non_bound <- formatEnsembl(fly.non_bound, FALSE)
+# fly.non_bound <- formatEnsembl(fly.non_bound, FALSE)
 fly.bound$Tipo <- "Unidos"
-#fly.bound <- formatEnsembl(fly.bound, FALSE)
+# fly.bound <- formatEnsembl(fly.bound, FALSE)
 fly.non_bound$Gen <- as.character(fly.non_bound$Gen)
 fly.random$Column3 <- as.character(fly.random$Column3)
 fly.bound$Gen <- as.character(fly.bound$Gen)
@@ -47,7 +47,7 @@ fly.bound$Gen <- as.character(fly.bound$Gen)
 
 # add random
 fly.random$Tipo <- "Random"
-#fly.random <- formatEnsembl(fly.random, FALSE)
+# fly.random <- formatEnsembl(fly.random, FALSE)
 
 # check intersections
 fly.bound %>% inner_join(fly.non_bound, by = c("Gen"))
@@ -115,7 +115,7 @@ cfly <- fly.bound %>%
 cfly %>% getCorPearson()
 cfly %>% getCorTau()
 
-fly$id <- fly$Gen #paste(fly$Gen, fly$N.2,fly$N.1, fly$Loop)
+fly$id <- fly$Gen # paste(fly$Gen, fly$N.2,fly$N.1, fly$Loop)
 
 
 #######################################

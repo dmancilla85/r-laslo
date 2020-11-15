@@ -7,12 +7,12 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
 }
 
 if (!require(R4RNA)) {
-  BiocManager::install("R4RNA") #, version = "3.8")
+  BiocManager::install("R4RNA") # , version = "3.8")
   library(R4RNA)
 }
 
 if (!require(Biostrings)) {
-  BiocManager::install("Biostrings") #, version = "3.8")
+  BiocManager::install("Biostrings") # , version = "3.8")
   library(Biostrings)
 }
 
