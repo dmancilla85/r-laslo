@@ -250,11 +250,19 @@ cq <-
 
 corrplot(cq$residuals, is.cor = FALSE, tl.srt = 0, tl.offset = 0.8)
 
+corrplot(cq$residuals,is.corr = FALSE)
+corrplot(cq$stdres,is.corr = FALSE)
+
+vcd::assocstats(n_2)
+contrib <- 100 * cq$residuals^2 / cq$statistic
+round(contrib, 3)
+corrplot(contrib, is.cor = FALSE)
+
 n_1 <- myTable %>% filter(metric == "N(-1)")
 n_1 <- table(n_1$Tipo, n_1$value)
 cq1 <-
   chisq.test(n_1) # X-squared = 80.001, df = 12, p-value = 4.126e-12
-corrplot(cq1$residuals,
+corrplot(cq1$stdres,
   is.cor = FALSE, method = "square", tl.srt = 0,
   tl.offset = 0.8
 )
@@ -443,24 +451,44 @@ library(Cairo)
 library(vcd)
 library(cairoDevice)
 
+
+
+# Si la prueba de Chi-cuadrado es significativa necesitamos mirar a los residuos.
+# Si el valor de los residuos estandarizados es menor que -2 significa que la celda contiene menos 
+# observaciones de lo esperado (la variable sería independiente). Si el valor de los residuos estandarizados
+# es mayor que 2 significa que la celda contiene mas observaciones de lo esperado.
+# Residuos positivos (en azul) en celdas especifican una atracción (asociación positiva)
+# Residuos negativos (en rojo) implican una repulsión (asociación negativa) entre las variables de la fila y columna correspondiente. 
+
+# If the chi squared test is significant we need to take a look at residuals.
+# If the value of standardized residual is lower than -2 it means that the cell contains fewer 
+# observations that it was expected (the case of variables independence). If the value of standardized 
+# residual is higher than 2 it means that the cell contains more observations that it was expected.
+# Positive residuals are in blue. Positive values in cells specify an attraction (positive association) 
+# between the corresponding row and column variables.
+# Negative residuals are in red. This implies a repulsion (negative association)between the corresponding 
+# row and column variables.
+#We can plot the results using assocplot() function
+
 myTable <- fly %>%
-  select(Tipo, TerminalPair) %>%
-  gather(metric, value, -Tipo)
+  select(Tipo, N.2, N.1, N2, N5, N6, N7, N8) %>%
+  gather(metric, value, -Tipo) %>%
+  filter(value %in% c("A", "G", "C", "U")) %>%
+  mutate(metric = str_replace_all(metric, "N.1", "N(-1)")) %>%
+  mutate(metric = str_replace_all(metric, "N.2", "N(-2)"))
 
-
-
-n_2 <- myTable %>% filter(metric == "TerminalPair")
+n_2 <- myTable %>% filter(metric == "N(-2)")
 n_2 <- table(n_2$Tipo, n_2$value)
 cq <-
   chisq.test(n_2) # X-squared = 88.471, df = 12, p-value = 9.756e-14
 
-corrplot(cq$residuals, is.cor = FALSE, tl.srt = 0, tl.offset = 0.8)
+corrplot(cq$stdres, is.cor = FALSE, tl.srt = 0, tl.offset = 0.8,method="square")
 
 n_1 <- myTable %>% filter(metric == "N(-1)")
 n_1 <- table(n_1$Tipo, n_1$value)
 cq1 <-
   chisq.test(n_1) # X-squared = 80.001, df = 12, p-value = 4.126e-12
-corrplot(cq1$residuals,
+corrplot(cq1$stdres,
   is.cor = FALSE, method = "square", tl.srt = 0,
   tl.offset = 0.8
 )
@@ -473,7 +501,7 @@ n2 <- myTable %>% filter(metric == "N2")
 n2 <- table(n2$Tipo, n2$value)
 cq2 <-
   chisq.test(n2) # X-squared = 164.23, df = 12, p-value < 2.2e-16
-corrplot(cq2$residuals, is.cor = FALSE, method = "square", tl.srt = 0, tl.offset = 0.8)
+corrplot(cq2$stdres, is.cor = FALSE, method = "square", tl.srt = 0, tl.offset = 0.8)
 contrib2 <- 100 * cq2$residuals^2 / cq2$statistic
 corrplot(contrib2, is.cor = FALSE)
 
@@ -481,25 +509,25 @@ n5 <- myTable %>% filter(metric == "N5")
 n5 <- table(n5$Tipo, n5$value)
 cq <-
   chisq.test(n5) # X-squared = 51.813, df = 12, p-value = 6.692e-07
-corrplot(cq$residuals, is.cor = FALSE)
+corrplot(cq$stdres, is.cor = FALSE, method = "square", tl.srt = 0, tl.offset = 0.8)
 
 n6 <- myTable %>% filter(metric == "N6")
 n6 <- table(n6$Tipo, n6$value)
 cq <-
   chisq.test(n6) # X-squared = 42.266, df = 12, p-value = 3.004e-05
-corrplot(cq$residuals, is.cor = FALSE)
+corrplot(cq$stdres, is.cor = FALSE,method="square", tl.srt = 0, tl.offset = 0.8)
 
 n7 <- myTable %>% filter(metric == "N7")
 n7 <- table(n7$Tipo, n7$value)
 cq <-
   chisq.test(n7) # X-squared = 48.854, df = 12, p-value = 2.218e-06
-corrplot(cq$residuals, is.cor = FALSE)
+corrplot(cq$stdres, is.cor = FALSE,method="square", tl.srt = 0, tl.offset = 0.8)
 
 n8 <- myTable %>% filter(metric == "N8")
 n8 <- table(n8$Tipo, n8$value)
 cq <-
   chisq.test(n8) # X-squared = 39.747, df = 12, p-value = 7.92e-05 *may be incorrect
-corrplot(cq$residuals, is.cor = FALSE)
+corrplot(cq$stdres, is.cor = FALSE,method="square")
 
 
 # pares terminales
@@ -508,13 +536,18 @@ myTable <- fly %>%
   gather(metric, value, -Tipo)
 
 
-
-n_2 <- myTable %>% filter(metric == "TerminalPair")
-n_2 <- table(n_2$Tipo, n_2$value)
+pairs <- myTable %>% filter(metric == "TerminalPair")
+pairs <- table(pairs$Tipo, pairs$value)
+vcd::assocstats(pairs)
 cq <-
-  chisq.test(n_2) # X-squared = 88.471, df = 12, p-value = 9.756e-14
+  chisq.test(pairs) # X-squared = 88.471, df = 12, p-value = 9.756e-14
 
-corrplot(cq$residuals, is.cor = FALSE, tl.srt = 0, tl.offset = 1, method = "square")
+corrplot(cq$stdres, is.cor = FALSE, tl.srt = 0, tl.offset = 1, method = "square")
 
-View(cq)
-vcd::assocstats(n_2)
+# FISHER
+locs <- table(fly$Tipo,fly$Location)
+locs.prop <- prop.table(locs,1)
+locs.cq <- chisq.test(locs)
+corrplot::corrplot(locs.cq$stdres,is.corr = F,method="square")
+vcdd <- vcd::assocstats(locs)
+

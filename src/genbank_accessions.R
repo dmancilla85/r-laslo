@@ -84,48 +84,67 @@ showError <- function(err, type = "Error:") {
   print(paste("Call:", err$call))
 }
 
-getNCBIRefSeq <- function(lst, prefix, prmType = "accession") {
+getNCBIRefSeq <- function(lst, prefix, prmType = "uid") {
   # Clear screen
   cat("\014")
 
   print("Starting process...")
+  res <- "fail"
+
+  if (file.exists("./data/lost")) {
+    file.remove("./data/lost")
+    file.create("./data/lost")
+  }
 
   for (i in 1:nrow(lst)) {
     # print("Calling GenBank")
 
     tryCatch(
-      xdoc <- annotate::genbank(lst$GeneID[i], type = prmType, disp = "data"),
+      expr = {
+        xdoc <- annotate::genbank(lst$GeneID[i], type = prmType, disp = "data")
+
+        # Check that id exists and check integrity of xdoc
+        if (!is.null(xdoc) && class(xdoc) != "logical") {
+          print("trying by accession...")
+          xdoc <- annotate::genbank(lst$GeneID[i], type = "accession", disp = "data")
+        }
+
+
+        xmlDoc <- xmlToList(xdoc)
+        xmlDoc <- unlist(xmlDoc)
+
+        # aux_prefix <- paste0("<Gene-commentary_accession>",prefix)
+
+        ix <- str_detect(xmlDoc, prefix)
+        aux <- xmlDoc[ix]
+        aux <- unlist(aux)
+        check_id <- !str_detect(aux, "http")
+
+        if (i == 1) {
+          res <- aux[check_id] %>% unique()
+        } else {
+          aux <- aux[check_id] %>% unique()
+
+          if (!is_empty(aux)) {
+            print(paste("Fila:", i, "Cont:", aux))
+
+            res <- c(res, aux)
+          } else {
+            print(paste("Vacio", lst$GeneID[i]))
+            write(lst$GeneID[i], "./data/lost", append = TRUE)
+          }
+        }
+      },
       warning = function(err) {
         showError(err, "Warning")
-        # print(xdoc)
+        print(paste("Warning con", lst$GeneID[i]))
       },
       error = function(err) {
         showError(err)
-        # print(xdoc)
+        print(paste("Error con", lst$GeneID[i]))
       }
     )
 
-
-    # Check that id exists and check integrity of xdoc
-    if (!is.null(xdoc) && class(xdoc) != "logical") {
-      xmlDoc <- xmlToList(xdoc)
-      xmlDoc <- unlist(xmlDoc)
-      ix <- str_detect(xmlDoc, prefix)
-      aux <- xmlDoc[ix]
-      aux <- unlist(aux)
-
-
-      if (i == 1) {
-        res <- aux %>% unique()
-      } else {
-        aux <- aux %>% unique()
-        print(paste("Fila:", i, "Cont:", aux))
-
-        if (str_length(aux) <= 20) {
-          res <- c(res, aux)
-        }
-      }
-    }
     # pause between API requests
     Sys.sleep(8)
   }
@@ -143,11 +162,22 @@ getNCBIRefSeq <- function(lst, prefix, prmType = "accession") {
 ###########################################################
 
 lst <- c("", "", "")
-lst <- read.table("./data/PospilikS2.txt", header = T)
+lst <- read.table("./data/tgc_reduced.txt", header = T)
 
 # Get transcripts (NM_x code)
-res <- getNCBIRefSeq(lst, prefix = refSeq[7], prmType = "uid")
+res <- getNCBIRefSeq(lst, prefix = refSeq[7])
 
 print(res)
-write(res, "./data/PospilikS2.lst")
+write(res, "./data/tcg_reduced.lst")
 warnings()
+
+
+# require(XML)
+# xdoc <- annotate::genbank("FBgn0032497", type = "uid", disp = "data")
+# saveXML()
+# data <- xmlParse(xdoc$doc$children$`Entrezgene-Set`)
+# xml_data <- xmlToList(data)
+
+# xdoc <- annotate::genbank("FBgn0033698", type = "accession", disp = "data")
+# xmlDoc <- xmlToList(xdoc)
+# xmlDoc <- unlist(xmlDoc)
