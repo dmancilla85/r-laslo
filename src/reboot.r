@@ -182,6 +182,11 @@ purinePlot(fly)
 relativePositionPlot(fly)
 locationPlot(fly)
 
+# ANOVA 
+tb <- table(fly$Tipo,fly$LoopPattern)
+cq <- chisq.test(tb)
+
+
 # HEATMAP
 library(reshape2)
 un <- filter(fly, Tipo == "Unidos y no silenciados")
