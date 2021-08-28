@@ -9,15 +9,21 @@ fly.rnd <- read.csv(
   stringsAsFactors = TRUE
 )
 
-fly.bound <- read.csv(
+fly.uns <- read.csv(
   "./data/stem15/fly.bound.local.4.15.csv",
   sep = ";",
   dec = ",",
   stringsAsFactors = TRUE
 )
 
-# nounidos <- read.table("./data/fly_non_bound.txt",header = T,stringsAsFactors = F)
-# reprimidos <- read.table("./data/fly_repressed.txt",header = T,stringsAsFactors = F)
+
+unidos <-
+  read.table("./data/fly_bound.lst",
+    header = F,
+    stringsAsFactors = F
+  )
+
+
 nounidos <-
   read.table("./data/fly_non_bound.lst",
     header = F,
@@ -28,11 +34,24 @@ reprimidos <-
     header = F,
     stringsAsFactors = F
   )
-nounidos <- nounidos %>% anti_join(reprimidos)
 
-# write.table(nounidos,"nounidos.lst")
+uns.total <- unidos %>%
+  anti_join(reprimidos) %>%
+  nrow()
+us.total <- unidos %>%
+  inner_join(reprimidos) %>%
+  nrow()
+nus.total <- reprimidos %>%
+  anti_join(unidos) %>%
+  nrow()
 
-fly.nonbound <- read.csv(
+nounidos %>% nrow()
+nuns.total <- nounidos %>%
+  anti_join(reprimidos) %>%
+  anti_join(unidos) %>%
+  nrow()
+
+fly.nuns <- read.csv(
   "./data/stem15/fly.non_bound.local.4.15.csv",
   sep = ";",
   dec = ",",
@@ -40,109 +59,159 @@ fly.nonbound <- read.csv(
 )
 
 # First random file
-fly.repressed <- read.csv(
+fly.nus <- read.csv(
   "./data/stem15/fly.repressed.local.4.15.csv",
   sep = ";",
   dec = ",",
   stringsAsFactors = TRUE
 )
 
-fly.bound$Tipo <- "Unidos y no silenciados"
-fly.nonbound$Tipo <- "No unidos y no silenciados"
-fly.repressed$Tipo <- "No unidos y silenciados"
+fly.uns$Tipo <- "Unidos y no silenciados"
+fly.nuns$Tipo <- "No unidos y no silenciados"
+fly.nus$Tipo <- "No unidos y silenciados"
 fly.rnd$Tipo <- "Random"
 
 
-fly.bound$AccessionID <- as.character(fly.bound$AccessionID)
-fly.nonbound$AccessionID <- as.character(fly.nonbound$AccessionID)
-fly.repressed$AccessionID <- as.character(fly.repressed$AccessionID)
+fly.uns$AccessionID <- as.character(fly.uns$AccessionID)
+fly.nuns$AccessionID <- as.character(fly.nuns$AccessionID)
+fly.nus$AccessionID <- as.character(fly.nus$AccessionID)
 
 # Tomar intersección entre unidos y silenciados
 aux <-
-  fly.repressed %>%
+  fly.nus %>%
   select(AccessionID) %>%
   unique() %>%
-  inner_join(fly.bound %>% select(AccessionID) %>% unique(),
+  inner_join(fly.uns %>% select(AccessionID) %>% unique(),
     by = c("AccessionID")
   )
 
-fly.desest <- fly.bound %>% inner_join(aux, by = c("AccessionID"))
-fly.desest$Tipo <- "Unidos y silenciados"
+fly.us <- fly.uns %>% inner_join(aux, by = c("AccessionID"))
+fly.us$Tipo <- "Unidos y silenciados"
 
-fly.bound <- fly.bound %>% anti_join(aux, by = c("AccessionID"))
-fly.repressed <-
-  fly.repressed %>% anti_join(aux, by = c("AccessionID"))
+fly.uns <- fly.uns %>% anti_join(aux, by = c("AccessionID"))
+fly.nus <-
+  fly.nus %>% anti_join(aux, by = c("AccessionID"))
 
 # Tomar intersección entre no unidos y silenciados
 
 aux <-
-  fly.repressed %>%
+  fly.nus %>%
   select(AccessionID) %>%
   unique() %>%
-  inner_join(fly.nonbound %>% select(AccessionID) %>% unique(),
+  inner_join(fly.nuns %>% select(AccessionID) %>% unique(),
     by = c("AccessionID")
   )
 
-fly.nonbound <-
-  fly.nonbound %>% anti_join(aux, by = c("AccessionID"))
+fly.nuns <-
+  fly.nuns %>% anti_join(aux, by = c("AccessionID"))
 
 aux <- NULL
 
 modo <- 2 # 1: Unidos y silenciados vs random / 2: Todos vs todos
 
 if (modo == 1) {
-  fly <- rbind(fly.rnd, fly.desest)
+  fly <- rbind(fly.rnd, fly.us)
 } else {
-  fly <- rbind(fly.bound, fly.desest)
-  fly <- rbind(fly, fly.repressed)
-  fly <- rbind(fly, fly.nonbound)
+  fly <- rbind(fly.uns, fly.us)
+  fly <- rbind(fly, fly.nus)
+  fly <- rbind(fly, fly.nuns)
   fly <- rbind(fly, fly.rnd)
 }
 fly$Tipo <- as.factor(fly$Tipo)
 
-fly.bound %>%
+fly.uns %>%
   distinct(Gen) %>%
   nrow() # 66
-fly.nonbound %>%
+fly.nuns %>%
   distinct(Gen) %>%
   nrow() # 161
-fly.repressed %>%
+fly.nus %>%
   distinct(Gen) %>%
   nrow() # 1170
 fly.rnd %>%
   distinct(Gen) %>%
   nrow() # 237
-fly.desest %>%
+fly.us %>%
   distinct(Gen) %>%
   nrow() # 184
 
-fly.bound %>%
+fly.uns %>%
   distinct(AccessionID) %>%
   nrow() # 174
-fly.nonbound %>%
+fly.nuns %>%
   distinct(AccessionID) %>%
   nrow() # 393
-fly.repressed %>%
+fly.nus %>%
   distinct(AccessionID) %>%
   nrow() # 3035
 fly.rnd %>%
   distinct(AccessionID) %>%
   nrow() # 479
-fly.desest %>%
+fly.us %>%
   distinct(AccessionID) %>%
   nrow() # 469
 
-nrow(fly.bound) # 292
-nrow(fly.nonbound) # 586
-nrow(fly.repressed) # 6326
-nrow(fly.rnd) # 758
-nrow(fly.desest) # 1083
+total <- c("US" = 636, "UNS" = 263, "NUS" = 4086, "NUNS" = 1028, "RND"=899)
+aciertos <- c("US" = 468, "UNS" = 179, "NUS" = 3036, "NUNS" = 395,"RND"=474)
 
-summary(fly.bound$LoopPattern) # 292
-summary(fly.nonbound$LoopPattern) # 586
-summary(fly.repressed$LoopPattern) # 6326
+######################################
+# prueba de grupos
+######################################
+ztest <- prop.test(aciertos, n = total, correct = F)
+zscore <- c(4,2,3,1,0)
+ztest
+zprop <- c(0.7358,0.6806,0.7430,0.3842,0.5272)
+ztrend <- prop.trend.test(aciertos, n = total,zscore)
+ztrend
+ztb <- cbind("Puntaje"=zscore,"Proporciones estimadas"=zprop)
+ztb <- as.data.frame(ztb)
+ztb <- cbind(ztb, Grupo= c("Unidos y silenciados","Unidos y no silenciados","No unidos y silenciados","No unidos ni silenciados","Random"))
+
+zplot <- ztb %>% 
+  ggplot(aes(x=Puntaje,y=`Proporciones estimadas`,color=Grupo)) + 
+  geom_point() + 
+  geom_text(aes(label=round(`Proporciones estimadas`,3)),hjust=0.5, vjust=1.5,size=3)+
+  scale_y_continuous(labels = comma)+
+  ggtitle("Prueba X-cuadrado de Tendencia en Proporciones", subtitle = "Estadístico X-cuadrado = 398,15 - df = 1 - p-valor < 0,01")
+
+zplot
+
+# USxUNS todos con un alpha de 0,1
+prop.test(c(468,179), c(636,263)) p-=0,11 x=2.5472
+# USxNUS
+prop.test(c(468,3036),c(636,4086)) p=0.73 x=0.1129
+# USxNUNS 
+prop.test(c(468,395),c(636,1028)) p < 0.01 x=193.16
+# USxRND 
+prop.test(c(468,474),c(636,899)) p < 0.01 x= 67,488
+# UNSxNUS 
+prop.test(c(179,3036),c(263,4086)) p = 0.0306 x=4.6755
+# UNSxNUNS 
+prop.test(c(179,395),c(263,1028)) p < 0.01 x= 73.29
+# UNSxRND 
+prop.test(c(179,474),c(263,899)) p < 0.01 x = 18.822
+# NUSxNUNS 
+prop.test(c(3036,395),c(4086,1028)) p < 0.01 x = 477,24
+# NUSxRND 
+prop.test(c(3036,474),c(4086,899)) p < 0.01 x = 163.64
+# NUNSxRND
+prop.test(c(395,474),c(1028,899)) p < 0.01 x = 163.64
+
+######################################
+# prueba de grupos
+######################################
+
+nrow(fly.uns) # 292
+nrow(fly.nuns) # 586
+nrow(fly.nus) # 6326
+nrow(fly.rnd) # 758
+nrow(fly.us) # 1083
+
+summary(fly.uns$LoopPattern) # 292
+summary(fly.nuns$LoopPattern) # 586
+summary(fly.nus$LoopPattern) # 6326
 summary(fly.rnd$LoopPattern) # 758
-summary(fly.desest$LoopPattern) # 1083
+summary(fly.us$LoopPattern) # 1083
 
 fly$Id <- 1:nrow(fly)
 fly$N10 <- as.factor(fly$N9)
@@ -182,8 +251,8 @@ purinePlot(fly)
 relativePositionPlot(fly)
 locationPlot(fly)
 
-# ANOVA 
-tb <- table(fly$Tipo,fly$LoopPattern)
+# ANOVA
+tb <- table(fly$Tipo, fly$LoopPattern)
 cq <- chisq.test(tb)
 
 
@@ -255,8 +324,8 @@ cq <-
 
 corrplot(cq$residuals, is.cor = FALSE, tl.srt = 0, tl.offset = 0.8)
 
-corrplot(cq$residuals,is.corr = FALSE)
-corrplot(cq$stdres,is.corr = FALSE)
+corrplot(cq$residuals, is.corr = FALSE)
+corrplot(cq$stdres, is.corr = FALSE)
 
 vcd::assocstats(n_2)
 contrib <- 100 * cq$residuals^2 / cq$statistic
@@ -394,7 +463,7 @@ plot(
 ###############################################################################
 
 
-glimpse(fly.bound)
+glimpse(fly.uns)
 fly$Gen <- as.character(fly$Gen)
 
 df <- fly %>%
@@ -459,21 +528,21 @@ library(cairoDevice)
 
 
 # Si la prueba de Chi-cuadrado es significativa necesitamos mirar a los residuos.
-# Si el valor de los residuos estandarizados es menor que -2 significa que la celda contiene menos 
+# Si el valor de los residuos estandarizados es menor que -2 significa que la celda contiene menos
 # observaciones de lo esperado (la variable sería independiente). Si el valor de los residuos estandarizados
 # es mayor que 2 significa que la celda contiene mas observaciones de lo esperado.
 # Residuos positivos (en azul) en celdas especifican una atracción (asociación positiva)
-# Residuos negativos (en rojo) implican una repulsión (asociación negativa) entre las variables de la fila y columna correspondiente. 
+# Residuos negativos (en rojo) implican una repulsión (asociación negativa) entre las variables de la fila y columna correspondiente.
 
 # If the chi squared test is significant we need to take a look at residuals.
-# If the value of standardized residual is lower than -2 it means that the cell contains fewer 
-# observations that it was expected (the case of variables independence). If the value of standardized 
+# If the value of standardized residual is lower than -2 it means that the cell contains fewer
+# observations that it was expected (the case of variables independence). If the value of standardized
 # residual is higher than 2 it means that the cell contains more observations that it was expected.
-# Positive residuals are in blue. Positive values in cells specify an attraction (positive association) 
+# Positive residuals are in blue. Positive values in cells specify an attraction (positive association)
 # between the corresponding row and column variables.
-# Negative residuals are in red. This implies a repulsion (negative association)between the corresponding 
+# Negative residuals are in red. This implies a repulsion (negative association)between the corresponding
 # row and column variables.
-#We can plot the results using assocplot() function
+# We can plot the results using assocplot() function
 
 myTable <- fly %>%
   select(Tipo, N.2, N.1, N2, N5, N6, N7, N8) %>%
@@ -487,7 +556,7 @@ n_2 <- table(n_2$Tipo, n_2$value)
 cq <-
   chisq.test(n_2) # X-squared = 88.471, df = 12, p-value = 9.756e-14
 
-corrplot(cq$stdres, is.cor = FALSE, tl.srt = 0, tl.offset = 0.8,method="square")
+corrplot(cq$stdres, is.cor = FALSE, tl.srt = 0, tl.offset = 0.8, method = "square")
 
 n_1 <- myTable %>% filter(metric == "N(-1)")
 n_1 <- table(n_1$Tipo, n_1$value)
@@ -520,19 +589,19 @@ n6 <- myTable %>% filter(metric == "N6")
 n6 <- table(n6$Tipo, n6$value)
 cq <-
   chisq.test(n6) # X-squared = 42.266, df = 12, p-value = 3.004e-05
-corrplot(cq$stdres, is.cor = FALSE,method="square", tl.srt = 0, tl.offset = 0.8)
+corrplot(cq$stdres, is.cor = FALSE, method = "square", tl.srt = 0, tl.offset = 0.8)
 
 n7 <- myTable %>% filter(metric == "N7")
 n7 <- table(n7$Tipo, n7$value)
 cq <-
   chisq.test(n7) # X-squared = 48.854, df = 12, p-value = 2.218e-06
-corrplot(cq$stdres, is.cor = FALSE,method="square", tl.srt = 0, tl.offset = 0.8)
+corrplot(cq$stdres, is.cor = FALSE, method = "square", tl.srt = 0, tl.offset = 0.8)
 
 n8 <- myTable %>% filter(metric == "N8")
 n8 <- table(n8$Tipo, n8$value)
 cq <-
   chisq.test(n8) # X-squared = 39.747, df = 12, p-value = 7.92e-05 *may be incorrect
-corrplot(cq$stdres, is.cor = FALSE,method="square")
+corrplot(cq$stdres, is.cor = FALSE, method = "square")
 
 
 # pares terminales
@@ -550,9 +619,8 @@ cq <-
 corrplot(cq$stdres, is.cor = FALSE, tl.srt = 0, tl.offset = 1, method = "square")
 
 # FISHER
-locs <- table(fly$Tipo,fly$Location)
-locs.prop <- prop.table(locs,1)
+locs <- table(fly$Tipo, fly$Location)
+locs.prop <- prop.table(locs, 1)
 locs.cq <- chisq.test(locs)
-corrplot::corrplot(locs.cq$stdres,is.corr = F,method="square")
+corrplot::corrplot(locs.cq$stdres, is.corr = F, method = "square")
 vcdd <- vcd::assocstats(locs)
-
