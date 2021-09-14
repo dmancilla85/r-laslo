@@ -158,7 +158,7 @@ aciertos <- c("US" = 468, "UNS" = 179, "NUS" = 3036, "NUNS" = 395,"RND"=474)
 # prueba de grupos
 ######################################
 ztest <- prop.test(aciertos, n = total, correct = F)
-zscore <- c(4,2,3,1,0)
+zscore <- c(4,2,3,0,1)
 ztest
 zprop <- c(0.7358,0.6806,0.7430,0.3842,0.5272)
 ztrend <- prop.trend.test(aciertos, n = total,zscore)
@@ -176,26 +176,35 @@ zplot <- ztb %>%
 
 zplot
 
-# USxUNS todos con un alpha de 0,1
-prop.test(c(468,179), c(636,263)) p-=0,11 x=2.5472
-# USxNUS
-prop.test(c(468,3036),c(636,4086)) p=0.73 x=0.1129
-# USxNUNS 
-prop.test(c(468,395),c(636,1028)) p < 0.01 x=193.16
-# USxRND 
-prop.test(c(468,474),c(636,899)) p < 0.01 x= 67,488
-# UNSxNUS 
-prop.test(c(179,3036),c(263,4086)) p = 0.0306 x=4.6755
-# UNSxNUNS 
-prop.test(c(179,395),c(263,1028)) p < 0.01 x= 73.29
-# UNSxRND 
-prop.test(c(179,474),c(263,899)) p < 0.01 x = 18.822
-# NUSxNUNS 
-prop.test(c(3036,395),c(4086,1028)) p < 0.01 x = 477,24
-# NUSxRND 
-prop.test(c(3036,474),c(4086,899)) p < 0.01 x = 163.64
-# NUNSxRND
-prop.test(c(395,474),c(1028,899)) p < 0.01 x = 163.64
+# USxUNS # p=0.09342 x=2.8144
+prop.test(c(468,179), c(636,263), correct = F) 
+
+# USxNUS  p =0.7004 x=0.14806
+prop.test(c(468,3036),c(636,4086), correct = F) # 
+
+# USxNUNS  p < 0.01 x=194.57
+prop.test(c(468,395),c(636,1028), correct = F) 
+
+# USxRND  # p < 0.01 x= 68,365
+prop.test(c(468,474),c(636,899), correct = F) 
+
+# UNSxNUS # p = 0.02544 x=4.994
+prop.test(c(179,3036),c(263,4086), correct = F) 
+
+# UNSxNUNS # p < 0.01 x= 74.491
+prop.test(c(179,395),c(263,1028), correct = F) 
+
+# UNSxRND # p < 0.01 x = 19.44
+prop.test(c(179,474),c(263,899), correct = F) 
+
+# NUSxNUNS # p < 0.01 x = 478,86
+prop.test(c(3036,395),c(4086,1028), correct = F) 
+
+# NUSxRND # p < 0.01 x = 164.67
+prop.test(c(3036,474),c(4086,899), correct = F) 
+
+# NUNSxRND # p < 0.01 x = 39.616
+prop.test(c(395,474),c(1028,899), correct = F) 
 
 ######################################
 # prueba de grupos
